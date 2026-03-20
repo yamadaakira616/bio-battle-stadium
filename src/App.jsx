@@ -39,6 +39,7 @@ export default function App() {
   if (screen === SCREEN.GAME) return (
     <GameScreen
       state={{ ...state, level: selectedLevel || state.level }}
+      maxLevel={state.level}
       onBack={() => setScreen(SCREEN.LEVEL_SELECT)}
       onEarnCoins={addCoins}
       onLevelUp={levelUp}

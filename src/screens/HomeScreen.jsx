@@ -85,11 +85,15 @@ export default function HomeScreen({ state, onPlay, onEncyclopedia, onGacha }) {
           <button
             onClick={onGacha}
             disabled={state.coins < GACHA_COST}
+            aria-disabled={state.coins < GACHA_COST}
             className="flex-1 py-3 rounded-2xl text-lg font-black text-white shadow active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ background: 'linear-gradient(135deg, #f472b6, #ec4899)' }}
           >
             🎲 ガチャ
             <div className="text-xs font-normal opacity-80">{GACHA_COST}コイン</div>
+            {state.coins < GACHA_COST && GACHA_COST - state.coins <= 50 && (
+              <div className="text-xs font-normal opacity-90">コイン{GACHA_COST - state.coins}たりない</div>
+            )}
           </button>
         </div>
       </div>

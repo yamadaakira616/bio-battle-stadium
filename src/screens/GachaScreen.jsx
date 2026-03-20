@@ -32,7 +32,7 @@ export default function GachaScreen({ state, onBack, onPull }) {
 
       {/* Header */}
       <div className="flex items-center gap-3 w-full p-4">
-        <button onClick={onBack} className="text-2xl">←</button>
+        <button onClick={onBack} aria-label="もどる" className="text-2xl">←</button>
         <h2 className="text-xl font-black text-amber-900">🎲 ガチャ</h2>
         <span className="ml-auto font-bold text-amber-800">💰 {state.coins}</span>
       </div>
@@ -102,7 +102,7 @@ export default function GachaScreen({ state, onBack, onPull }) {
       )}
 
       {!canPull && phase === 'idle' && (
-        <p className="text-red-600 font-bold text-sm mt-2">コインが足りません</p>
+        <p role="alert" aria-live="assertive" className="text-red-600 font-bold text-sm mt-2">コインが足りません</p>
       )}
 
       {/* Result */}
@@ -134,12 +134,28 @@ export default function GachaScreen({ state, onBack, onPull }) {
             </div>
           )}
 
+          {state.coins >= GACHA_COST ? (
+            <button
+              onClick={() => setPhase('idle')}
+              className="mt-4 w-full py-3 rounded-xl text-white font-bold"
+              style={{ background: 'linear-gradient(135deg,#60a5fa,#3b82f6)' }}
+            >
+              もう一度引く
+            </button>
+          ) : (
+            <button
+              onClick={onBack}
+              className="mt-4 w-full py-3 rounded-xl text-white font-bold"
+              style={{ background: 'linear-gradient(135deg,#f97316,#ea580c)' }}
+            >
+              コインをためよう！
+            </button>
+          )}
           <button
-            onClick={() => setPhase('idle')}
-            className="mt-4 w-full py-3 rounded-xl text-white font-bold"
-            style={{ background: 'linear-gradient(135deg,#60a5fa,#3b82f6)' }}
+            onClick={onBack}
+            className="mt-2 w-full py-3 rounded-xl font-bold text-gray-600 bg-gray-100"
           >
-            もう一度引く
+            ホームにもどる
           </button>
         </div>
       )}

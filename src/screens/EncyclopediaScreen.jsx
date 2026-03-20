@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import InsectCard from '../components/InsectCard.jsx';
 import { INSECTS } from '../data/insects.js';
 
@@ -16,6 +16,13 @@ const RARITY_COLORS = {
 export default function EncyclopediaScreen({ state, onBack }) {
   const [tab, setTab] = useState('common');
   const [detail, setDetail] = useState(null);
+  const closeButtonRef = useRef(null);
+
+  useEffect(() => {
+    if (detail && closeButtonRef.current) {
+      closeButtonRef.current.focus();
+    }
+  }, [detail]);
 
   const insects = INSECTS.filter(i => i.rarity === tab);
   const owned = id => state.collection.includes(id);
@@ -24,7 +31,7 @@ export default function EncyclopediaScreen({ state, onBack }) {
     <div className="min-h-screen flex flex-col" style={{ background: '#f0fdf4' }}>
       {/* Header */}
       <div className="flex items-center gap-3 p-4 bg-green-700 text-white">
-        <button onClick={onBack} className="text-2xl">←</button>
+        <button onClick={onBack} aria-label="もどる" className="text-2xl">←</button>
         <h2 className="text-xl font-black">🔍 むしずかん</h2>
         <span className="ml-auto text-sm">{state.collection.length}/{INSECTS.length}しゅ</span>
       </div>
@@ -37,7 +44,7 @@ export default function EncyclopediaScreen({ state, onBack }) {
             onClick={() => setTab(t.key)}
             className="flex-1 py-3 text-sm font-bold transition-colors"
             style={{
-              color: tab === t.key ? RARITY_COLORS[t.key] : '#9ca3af',
+              color: tab === t.key ? RARITY_COLORS[t.key] : '#6b7280',
               borderBottom: tab === t.key ? `3px solid ${RARITY_COLORS[t.key]}` : '3px solid transparent',
             }}
           >
@@ -67,8 +74,11 @@ export default function EncyclopediaScreen({ state, onBack }) {
       {/* Detail Modal */}
       {detail && (
         <div
+          role="dialog"
+          aria-modal="true"
           className="fixed inset-0 bg-black/60 flex items-end justify-center z-50"
           onClick={() => setDetail(null)}
+          onKeyDown={e => { if (e.key === 'Escape') setDetail(null); }}
         >
           <div
             className="w-full max-w-sm rounded-t-3xl p-6 pb-10"
@@ -84,7 +94,12 @@ export default function EncyclopediaScreen({ state, onBack }) {
                   {detail.nameEn}
                 </div>
               </div>
-              <button onClick={() => setDetail(null)} className="text-2xl opacity-70">✕</button>
+              <button
+                ref={closeButtonRef}
+                onClick={() => setDetail(null)}
+                aria-label="とじる"
+                className="text-2xl opacity-70"
+              >✕</button>
             </div>
 
             {detail.imagePath && (
@@ -94,11 +109,11 @@ export default function EncyclopediaScreen({ state, onBack }) {
 
             <div className="space-y-2 text-sm" style={{ color: detail.labelColor || '#1c1917' }}>
               <div className="flex gap-2">
-                <span className="font-bold w-16">産地</span>
+                <span className="font-bold w-16"><ruby>産地<rt>さんち</rt></ruby></span>
                 <span>{detail.origin}</span>
               </div>
               <div className="flex gap-2">
-                <span className="font-bold w-16">体長</span>
+                <span className="font-bold w-16"><ruby>体長<rt>たいちょう</rt></ruby></span>
                 <span>{detail.length}</span>
               </div>
               <div className="mt-3 opacity-90 leading-relaxed">{detail.description}</div>

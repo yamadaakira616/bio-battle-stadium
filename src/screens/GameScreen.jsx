@@ -15,7 +15,7 @@ function StarRow({ count }) {
   );
 }
 
-export default function GameScreen({ state, onBack, onEarnCoins, onLevelUp, onSaveStars, onBestCombo, onIncPlayed }) {
+export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLevelUp, onSaveStars, onBestCombo, onIncPlayed }) {
   const { level, coins } = state;
   const config = getLevelConfig(level);
 
@@ -37,13 +37,18 @@ export default function GameScreen({ state, onBack, onEarnCoins, onLevelUp, onSa
   const [showInsectFlash, setShowInsectFlash] = useState(false);
 
   // タイマーを ref ごとに分離してクリーンアップ競合を防ぐ
-  const countdownRef = useRef(null);
-  const flashRef     = useRef(null);
-  const blankRef     = useRef(null);
-  const answerRef    = useRef(null);
-  const feedbackRef  = useRef(null);
+  const countdownRef      = useRef(null);
+  const flashRef          = useRef(null);
+  const blankRef          = useRef(null);
+  const answerRef         = useRef(null);
+  const feedbackRef       = useRef(null);
+  const confettiTimerRef  = useRef(null);
+  const insectTimerRef    = useRef(null);
 
   const correctCountRef = useRef(0); // handleAnswer内で最新値を参照するため
+
+  // BUG-07: 星計算を一箇所に集約
+  const calcStars = (correct) => correct === 5 ? 3 : correct === 4 ? 2 : correct >= 3 ? 1 : 0;
 
   // 問題を生成してフラッシュ開始（カウントダウンなし）
   const startQuestion = useCallback((isFirst = false) => {
@@ -71,6 +76,8 @@ export default function GameScreen({ state, onBack, onEarnCoins, onLevelUp, onSa
       clearTimeout(blankRef.current);
       clearTimeout(answerRef.current);
       clearTimeout(feedbackRef.current);
+      clearTimeout(confettiTimerRef.current);
+      clearTimeout(insectTimerRef.current);
     };
   }, []);
 
@@ -145,9 +152,14 @@ export default function GameScreen({ state, onBack, onEarnCoins, onLevelUp, onSa
         return c + 1;
       });
       if (newCombo >= 2) playCombo(); else playCorrect();
-      if (newCombo >= 3) { setShowConfetti(true); setTimeout(() => setShowConfetti(false), 2000); }
+      if (newCombo >= 3) {
+        setShowConfetti(true);
+        clearTimeout(confettiTimerRef.current);
+        confettiTimerRef.current = setTimeout(() => setShowConfetti(false), 2000);
+      }
       setShowInsectFlash(true);
-      setTimeout(() => setShowInsectFlash(false), 500);
+      clearTimeout(insectTimerRef.current);
+      insectTimerRef.current = setTimeout(() => setShowInsectFlash(false), 500);
     } else {
       setCombo(0);
       playWrong();
@@ -160,14 +172,15 @@ export default function GameScreen({ state, onBack, onEarnCoins, onLevelUp, onSa
       const isLast = questionNum >= QUESTIONS_PER_LEVEL;
       if (isLast) {
         const finalCorrect = correctCountRef.current;
-        const stars = finalCorrect === 5 ? 3 : finalCorrect === 4 ? 2 : finalCorrect >= 3 ? 1 : 0;
+        const stars = calcStars(finalCorrect);
         onSaveStars(level, stars);
         onBestCombo(Math.max(maxCombo, combo + (ok ? 1 : 0)));
         onIncPlayed();
         if (stars >= 1) {
           onEarnCoins(starsCoins(stars));
           playLevelUp();
-          if (level < 50) onLevelUp();
+          // BUG-05: レベル再プレイ時は最大レベルを上書きしない
+          if (level < 50 && level >= (maxLevel ?? level)) onLevelUp();
           setPhase(Phase.LEVELUP);
         } else {
           setPhase(Phase.RESULT);
@@ -182,7 +195,7 @@ export default function GameScreen({ state, onBack, onEarnCoins, onLevelUp, onSa
   // ===== LEVELUP =====
   if (phase === Phase.LEVELUP) {
     const finalCorrect = correctCountRef.current;
-    const stars = finalCorrect === 5 ? 3 : finalCorrect === 4 ? 2 : finalCorrect >= 3 ? 1 : 0;
+    const stars = calcStars(finalCorrect);
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-5 p-6 text-center">
         <Confetti active={true} />
@@ -241,13 +254,26 @@ export default function GameScreen({ state, onBack, onEarnCoins, onLevelUp, onSa
 
       {/* ヘッダー */}
       <div className="w-full flex items-center justify-between pt-2">
-        <button onClick={onBack} className="text-2xl p-2">←</button>
+        <button
+          aria-label="もどる"
+          onClick={() => {
+            if (phase === Phase.FLASH || phase === Phase.ANSWER || phase === Phase.FEEDBACK) {
+              if (!window.confirm('ゲームをやめますか？')) return;
+            }
+            onBack();
+          }}
+          className="text-2xl p-2">←</button>
         <div className="font-bold text-gray-600 text-sm">{config.label} · {config.ms/1000}秒/こ</div>
         <div className="font-bold flex items-center gap-1">🪙{coins}</div>
       </div>
 
       {/* プログレス */}
-      <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+      <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden"
+           role="progressbar"
+           aria-valuenow={questionNum - 1}
+           aria-valuemin={0}
+           aria-valuemax={QUESTIONS_PER_LEVEL}
+           aria-label="もんだいのしんちょく">
         <div className="h-full rounded-full transition-all duration-500"
              style={{ width:`${((questionNum-1)/QUESTIONS_PER_LEVEL)*100}%`, background:'linear-gradient(90deg,#f97316,#eab308)' }}/>
       </div>
@@ -345,6 +371,7 @@ export default function GameScreen({ state, onBack, onEarnCoins, onLevelUp, onSa
                 return (
                   <button key={c} onClick={() => handleAnswer(c)}
                     disabled={selected !== null}
+                    aria-label={`こたえ ${c}`}
                     className="rounded-3xl py-5 font-black shadow-md active:scale-95 transition-all border-4"
                     style={{
                       fontSize: config.digits===1 ? '2.5rem' : config.digits===2 ? '1.8rem' : '1.3rem',
@@ -357,7 +384,8 @@ export default function GameScreen({ state, onBack, onEarnCoins, onLevelUp, onSa
             </div>
 
             {selected !== null && (
-              <div className={`text-3xl font-black animate-bounce-in ${isCorrect ? 'text-green-500' : 'text-red-500'}`}>
+              <div role="alert" aria-live="assertive"
+                   className={`text-3xl font-black animate-bounce-in ${isCorrect ? 'text-green-500' : 'text-red-500'}`}>
                 {isCorrect
                   ? combo >= 3 ? `🔥 ${combo}れんぞく！` : '🎉 せいかい！'
                   : `😢 こたえは ${problem?.answer}`}

@@ -58,7 +58,7 @@ const LEVEL_TABLE = [
 export const TOTAL_LEVELS = LEVEL_TABLE.length;
 
 export function getLevelConfig(level) {
-  const idx = Math.min(level - 1, LEVEL_TABLE.length - 1);
+  const idx = Math.max(0, Math.min(level - 1, LEVEL_TABLE.length - 1));
   return { ...LEVEL_TABLE[idx], level };
 }
 

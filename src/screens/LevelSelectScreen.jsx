@@ -15,7 +15,7 @@ export default function LevelSelectScreen({ state, onSelect, onBack }) {
   return (
     <div style={{ minHeight:'100svh', padding:16, paddingBottom:32 }}>
       <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16, paddingTop:8 }}>
-        <button onClick={onBack} style={{ fontSize:24, background:'none', border:'none', cursor:'pointer', padding:8 }}>←</button>
+        <button onClick={onBack} aria-label="もどる" style={{ fontSize:24, background:'none', border:'none', cursor:'pointer', padding:8 }}>←</button>
         <h2 style={{ margin:0, fontSize:22, fontWeight:900 }}>🗺️ レベルえらび</h2>
       </div>
 
@@ -29,7 +29,9 @@ export default function LevelSelectScreen({ state, onSelect, onBack }) {
           <div key={world} style={{ marginBottom:24 }}>
             {/* ワールドヘッダー */}
             <div style={{ position:'relative', marginBottom:12, borderRadius:16, overflow:'hidden' }}>
-              <WorldScene scene={SCENE_NAMES[world]} height={100}/>
+              <div aria-hidden="true">
+                <WorldScene scene={SCENE_NAMES[world]} height={100}/>
+              </div>
               <div style={{
                 position:'absolute', inset:0, display:'flex', alignItems:'center',
                 padding:'0 16px', background:'linear-gradient(90deg,rgba(0,0,0,0.4),transparent)',
@@ -54,17 +56,18 @@ export default function LevelSelectScreen({ state, onSelect, onBack }) {
                 return (
                   <button key={lv} onClick={() => !locked && onSelect(lv)} disabled={locked}
                     style={{
-                      borderRadius:12, padding:'8px 4px', border:`2px solid ${locked ? '#e5e7eb' : stars===3 ? '#fbbf24' : wc.accent}`,
+                      borderRadius:12, padding:'12px 4px', border:`2px solid ${locked ? '#e5e7eb' : stars===3 ? '#fbbf24' : wc.accent}`,
                       background: locked ? '#f9fafb' : stars===3 ? '#fef9c3' : stars>0 ? wc.bg : 'white',
                       opacity: locked ? 0.5 : 1, cursor: locked ? 'not-allowed' : 'pointer',
                       display:'flex', flexDirection:'column', alignItems:'center', gap:2,
                       boxShadow: !locked && stars===3 ? '0 2px 8px rgba(251,191,36,0.4)' : 'none',
+                      minHeight: 52,
                     }}>
                     <span style={{ fontSize:13, fontWeight:900, color: locked ? '#9ca3af' : wc.accent }}>
                       {locked ? '🔒' : `Lv${lv}`}
                     </span>
-                    <span style={{ fontSize:9, color:'#9ca3af', fontWeight:'bold' }}>{cfg.count}こ</span>
-                    <div style={{ fontSize:8 }}>
+                    <span style={{ fontSize:11, color:'#9ca3af', fontWeight:'bold' }}>{cfg.count}こ</span>
+                    <div style={{ fontSize:11 }} aria-label={`${stars}つぼし`}>
                       {'⭐'.repeat(stars)}{'☆'.repeat(3-stars)}
                     </div>
                   </button>

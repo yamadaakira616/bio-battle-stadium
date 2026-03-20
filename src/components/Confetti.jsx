@@ -4,6 +4,7 @@ export default function Confetti({ active }) {
   const [ps, setPs] = useState([]);
   useEffect(() => {
     if (!active) { setPs([]); return; }
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setPs([]); return; }
     setPs(Array.from({ length: 50 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
@@ -17,7 +18,7 @@ export default function Confetti({ active }) {
   }, [active]);
   if (!ps.length) return null;
   return (
-    <div style={{ position:'fixed', inset:0, pointerEvents:'none', overflow:'hidden', zIndex:100 }}>
+    <div aria-hidden="true" style={{ position:'fixed', inset:0, pointerEvents:'none', overflow:'hidden', zIndex:100 }}>
       {ps.map(p => (
         <div key={p.id} style={{
           position:'absolute', left:`${p.x}%`, top:'-30px',

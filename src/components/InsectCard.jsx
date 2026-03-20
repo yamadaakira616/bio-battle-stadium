@@ -36,6 +36,10 @@ export default function InsectCard({ insect, owned, onClick }) {
   return (
     <div
       onClick={onClick}
+      role="button"
+      tabIndex={onClick ? 0 : -1}
+      onKeyDown={e => { if ((e.key === 'Enter' || e.key === ' ') && onClick) { e.preventDefault(); onClick(); } }}
+      aria-label={owned ? insect.name : 'みつけていないむし'}
       className="rounded-xl overflow-hidden cursor-pointer select-none"
       style={{
         background: insect.bgColor,
@@ -52,11 +56,16 @@ export default function InsectCard({ insect, owned, onClick }) {
           <img
             src={insect.imagePath}
             alt={insect.name}
+            loading="lazy"
             style={{ maxWidth: 64, maxHeight: 64, objectFit: 'contain' }}
             onError={() => setImgError(true)}
           />
         ) : (
-          <div style={{ filter: owned ? 'none' : 'brightness(0)', opacity: owned ? 1 : 0.7 }}>
+          <div
+            aria-label={owned ? insect.name : 'みつけていないむし'}
+            role="img"
+            style={{ filter: owned ? 'none' : 'brightness(0)', opacity: owned ? 1 : 0.7 }}
+          >
             <InsectSilhouette size={64}/>
           </div>
         )}
