@@ -1,3 +1,5 @@
+import { useId } from 'react';
+
 /**
  * @param {Object} props
  * @param {number} [props.size=120]
@@ -5,20 +7,23 @@
  */
 // props: size (default 120), mood ('happy'|'thinking'|'excited'|'sad')
 export default function ProfessorMascot({ size = 120, mood = 'happy' }) {
+  const uid = useId();
   const mouthPath = mood === 'sad'
     ? 'M 40 58 Q 50 52 60 58'
     : mood === 'excited'
     ? 'M 37 54 Q 50 66 63 54'
     : 'M 40 56 Q 50 64 60 56';
 
+  const eyeY = mood === 'thinking' ? 44 : 42;
+
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" style={{ overflow: 'visible' }}>
       <defs>
-        <linearGradient id="profBody" x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient id={`${uid}-profBody`} x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#fde68a"/>
           <stop offset="100%" stopColor="#f59e0b"/>
         </linearGradient>
-        <filter id="profShadow">
+        <filter id={`${uid}-profShadow`}>
           <feDropShadow dx="2" dy="4" stdDeviation="3" floodOpacity="0.2"/>
         </filter>
       </defs>
@@ -27,7 +32,7 @@ export default function ProfessorMascot({ size = 120, mood = 'happy' }) {
       <ellipse cx="50" cy="97" rx="26" ry="5" fill="rgba(0,0,0,0.1)"/>
 
       {/* 体（丸い博士） */}
-      <circle cx="50" cy="52" r="38" fill="url(#profBody)" filter="url(#profShadow)"/>
+      <circle cx="50" cy="52" r="38" fill={`url(#${uid}-profBody)`} filter={`url(#${uid}-profShadow)`}/>
       <circle cx="50" cy="52" r="36" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2"/>
 
       {/* 帽子（虫取り帽） */}
@@ -38,14 +43,13 @@ export default function ProfessorMascot({ size = 120, mood = 'happy' }) {
       {/* 目 */}
       {[35, 65].map(cx => (
         <g key={cx}>
-          <circle cx={cx} cy={mood === 'thinking' ? 44 : 42} r="8" fill="white"/>
-          <circle cx={cx} cy={mood === 'thinking' ? 44 : 42} r="5" fill="#1e40af"/>
-          <circle cx={cx+1.5} cy={(mood === 'thinking' ? 44 : 42)-1.5} r="2" fill="white"/>
+          <circle cx={cx} cy={eyeY} r="8" fill="white"/>
+          <circle cx={cx} cy={eyeY} r="5" fill="#1e40af"/>
+          <circle cx={cx+1.5} cy={eyeY-1.5} r="2" fill="white"/>
           {/* まばたき */}
-          <rect x={cx-8} y={(mood === 'thinking' ? 44 : 42)-8} width="16" height="16" rx="8" fill="#fde68a"
-            style={{ transformOrigin: `${cx}px 42px` }}>
+          <rect x={cx-8} y={eyeY-8} width="16" height="16" rx="8" fill="#fde68a">
             <animate attributeName="height" values="0;0;0;16;0;0;0;16;0" dur="5s" repeatCount="indefinite"/>
-            <animate attributeName="y" values={`${(mood==='thinking'?44:42)};${(mood==='thinking'?44:42)};${(mood==='thinking'?44:42)};${(mood==='thinking'?44:42)-8};${(mood==='thinking'?44:42)};${(mood==='thinking'?44:42)};${(mood==='thinking'?44:42)};${(mood==='thinking'?44:42)-8};${(mood==='thinking'?44:42)}`} dur="5s" repeatCount="indefinite"/>
+            <animate attributeName="y" values={`${eyeY};${eyeY};${eyeY};${eyeY-8};${eyeY};${eyeY};${eyeY};${eyeY-8};${eyeY}`} dur="5s" repeatCount="indefinite"/>
           </rect>
         </g>
       ))}
