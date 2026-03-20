@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 const RARITY_LABELS = {
   common: { label: 'ノーマル', color: '#9ca3af' },
   rare: { label: 'レア', color: '#3b82f6' },
@@ -28,7 +30,8 @@ function InsectSilhouette({ size = 80 }) {
 
 // props: insect (InsectData), owned (bool), onClick (optional)
 export default function InsectCard({ insect, owned, onClick }) {
-  const rarity = RARITY_LABELS[insect.rarity];
+  const rarity = RARITY_LABELS[insect.rarity] ?? RARITY_LABELS.common;
+  const [imgError, setImgError] = useState(false);
 
   return (
     <div
@@ -45,20 +48,18 @@ export default function InsectCard({ insect, owned, onClick }) {
     >
       {/* Image area */}
       <div className="flex items-center justify-center" style={{ height: 80, padding: 8 }}>
-        {owned && insect.imagePath ? (
+        {owned && insect.imagePath && !imgError ? (
           <img
             src={insect.imagePath}
             alt={insect.name}
             style={{ maxWidth: 64, maxHeight: 64, objectFit: 'contain' }}
-            onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'block'; }}
+            onError={() => setImgError(true)}
           />
-        ) : null}
-        {/* Silhouette: shown when not owned, or as fallback */}
-        <div style={{ display: (!owned || !insect.imagePath) ? 'block' : 'none' }}>
+        ) : (
           <div style={{ filter: owned ? 'none' : 'brightness(0)', opacity: owned ? 1 : 0.7 }}>
             <InsectSilhouette size={64}/>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Label */}
