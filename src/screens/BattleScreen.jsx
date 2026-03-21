@@ -7,7 +7,7 @@ const RARITY_LABEL = { common:'ノーマル', rare:'レア', superRare:'SR', ult
 const RARITY_COLOR = { common:'#6b7280', rare:'#2563eb', superRare:'#7c3aed', ultra:'#d97706', legend:'#ffd700' };
 
 // バトルステージ定義（弱い順）
-// winReward: 勝利コイン, loseReward: 参加賞コイン, requiredLevel: 挑戦に必要な自分昆虫の最高Lv
+// rewardInsectId: 初回クリアで入手できるバトル限定昆虫
 const BATTLE_STAGES = [
   {
     id: 'b1', label: 'はじめのいっぽ', stars: 1,
@@ -15,6 +15,7 @@ const BATTLE_STAGES = [
     winReward: 3, loseReward: 1,
     hint: 'Lv1でも勝てる！', requiredLevel: 1,
     bg: '#ecfccb',
+    rewardInsectId: 'bt01',
   },
   {
     id: 'b2', label: 'もりのたたかい', stars: 2,
@@ -22,6 +23,7 @@ const BATTLE_STAGES = [
     winReward: 5, loseReward: 1,
     hint: 'Lv3があれば勝てる', requiredLevel: 1,
     bg: '#dbeafe',
+    rewardInsectId: 'bt02',
   },
   {
     id: 'b3', label: 'やまのはおう', stars: 3,
@@ -29,6 +31,7 @@ const BATTLE_STAGES = [
     winReward: 8, loseReward: 2,
     hint: 'Lv5が目安', requiredLevel: 4,
     bg: '#f3e8ff',
+    rewardInsectId: 'bt03',
   },
   {
     id: 'b4', label: 'せかいのきょうじん', stars: 4,
@@ -36,6 +39,7 @@ const BATTLE_STAGES = [
     winReward: 12, loseReward: 2,
     hint: 'Lv7以上が必要', requiredLevel: 6,
     bg: '#fef3c7',
+    rewardInsectId: 'bt04',
   },
   {
     id: 'b5', label: 'でんせつのつよさ', stars: 5,
@@ -44,6 +48,7 @@ const BATTLE_STAGES = [
     hint: 'Lv9が必要', requiredLevel: 8,
     bg: '#1e1b4b',
     darkText: true,
+    rewardInsectId: 'bt05',
   },
   {
     id: 'boss', label: '👑 ラスボス', stars: 6,
@@ -53,6 +58,7 @@ const BATTLE_STAGES = [
     bg: '#0f0a1e',
     darkText: true,
     isBoss: true,
+    rewardInsectId: 'bt06',
   },
 ];
 
@@ -100,7 +106,7 @@ function HpBar({ hp, maxHp }) {
   );
 }
 
-export default function BattleScreen({ state, onBack, onEarnCoins }) {
+export default function BattleScreen({ state, onBack, onEarnCoins, onSpendBattlePoint, onClearStage }) {
   const [phase, setPhase] = useState('pickStage'); // pickStage | pickInsect | battle | result
   const [selectedStage, setSelectedStage] = useState(null);
   const [enemy, setEnemy] = useState(null);
@@ -116,10 +122,12 @@ export default function BattleScreen({ state, onBack, onEarnCoins }) {
   const [battleResult, setBattleResult] = useState(null);
   const timerRef = useRef(null);
 
-  const myInsects = INSECTS.filter(i => state.collection.includes(i.id));
+  const myInsects = INSECTS.filter(i => state.collection.includes(i.id) && i.rarity !== 'battle');
   const bestLevel = myInsects.length > 0
     ? Math.max(...myInsects.map(i => state.insectLevels?.[i.id] ?? 1))
     : 0;
+  const battlePoints = state.battlePoints ?? 0;
+  const clearedStages = state.clearedStages ?? [];
 
   useEffect(() => () => clearTimeout(timerRef.current), []);
 
@@ -135,6 +143,7 @@ export default function BattleScreen({ state, onBack, onEarnCoins }) {
     const playerStats = getInsectStats(insect, lv);
     const log = simulateBattle(playerStats, enemy.stats);
 
+    onSpendBattlePoint();
     setSelectedInsect({ insect, stats: playerStats, level: lv });
     setBattleLog(log);
     setLogIndex(0);
@@ -160,7 +169,12 @@ export default function BattleScreen({ state, onBack, onEarnCoins }) {
         const won = entry.result === 'win';
         const reward = won ? selectedStage.winReward : selectedStage.loseReward;
         onEarnCoins(reward);
-        if (won) playBattleWin(); else playBattleLose();
+        if (won) {
+          playBattleWin();
+          onClearStage(selectedStage.id, selectedStage.rewardInsectId);
+        } else {
+          playBattleLose();
+        }
         setPhase('result');
       }, 800);
       return;
@@ -191,9 +205,17 @@ export default function BattleScreen({ state, onBack, onEarnCoins }) {
           <span className="ml-auto text-yellow-300 font-bold">💰 {state.coins}</span>
         </div>
 
-        <p className="text-purple-200 text-sm text-center px-4 mb-3">
-          あいてを選ぼう！強い相手ほどコインをたくさんもらえる
-        </p>
+        {/* バトルポイント表示 */}
+        <div className="mx-4 mb-3 rounded-2xl p-3 flex items-center justify-between"
+             style={{ background: battlePoints > 0 ? 'rgba(255,255,255,0.12)' : 'rgba(239,68,68,0.2)' }}>
+          <div>
+            <div className="text-white font-black text-lg">⚔️ バトルポイント: {battlePoints}</div>
+            <div className="text-purple-300 text-xs">
+              {battlePoints > 0 ? '問題を1回クリアするごとに1ポイント溜まるよ' : '問題を解いてポイントをためよう！'}
+            </div>
+          </div>
+          {battlePoints === 0 && <div className="text-red-300 text-2xl">🔒</div>}
+        </div>
 
         {myInsects.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6">
@@ -208,7 +230,11 @@ export default function BattleScreen({ state, onBack, onEarnCoins }) {
         ) : (
           <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-2">
             {BATTLE_STAGES.map(stage => {
-              const locked = bestLevel < stage.requiredLevel;
+              const levelLocked = bestLevel < stage.requiredLevel;
+              const pointLocked = battlePoints <= 0;
+              const locked = levelLocked || pointLocked;
+              const cleared = clearedStages.includes(stage.id);
+              const rewardInsect = INSECTS.find(i => i.id === stage.rewardInsectId);
               const enemyInsect = INSECTS.find(i => i.id === stage.insectId);
               const textColor = stage.darkText ? '#e2e8f0' : '#1c1917';
 
@@ -231,18 +257,24 @@ export default function BattleScreen({ state, onBack, onEarnCoins }) {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-black text-sm" style={{ color: textColor }}>{stage.label}</span>
-                        {locked && (
-                          <span className="text-xs bg-gray-500/30 text-gray-300 px-2 py-0.5 rounded-full">
-                            🔒 Lv{stage.requiredLevel}〜
-                          </span>
-                        )}
+                        {cleared && <span className="text-xs bg-teal-500/30 text-teal-300 px-2 py-0.5 rounded-full">✅ クリア済</span>}
+                        {levelLocked && <span className="text-xs bg-gray-500/30 text-gray-300 px-2 py-0.5 rounded-full">🔒 Lv{stage.requiredLevel}〜</span>}
+                        {pointLocked && !levelLocked && <span className="text-xs bg-red-500/30 text-red-300 px-2 py-0.5 rounded-full">⚔️ PT不足</span>}
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
                         <StarRow count={stage.stars} size={13} color={stage.darkText ? '#fbbf24' : '#f59e0b'}/>
                       </div>
                       <div className="text-xs mt-0.5" style={{ color: stage.darkText ? 'rgba(255,255,255,0.6)' : '#6b7280' }}>
-                        {locked ? `🔒 Lv${stage.requiredLevel}のむしが必要` : stage.hint}
+                        {levelLocked ? `🔒 Lv${stage.requiredLevel}のむしが必要` : pointLocked ? '問題を解いてPTをためよう' : stage.hint}
                       </div>
+                      {rewardInsect && (
+                        <div className="flex items-center gap-1 mt-1">
+                          <span className="text-xs" style={{ color: stage.darkText ? 'rgba(255,255,255,0.5)' : '#6b7280' }}>
+                            {cleared ? '✅ 入手済：' : '🎁 初回クリア報酬：'}
+                          </span>
+                          <span className="text-xs font-bold text-teal-400">{rewardInsect.name}</span>
+                        </div>
+                      )}
                     </div>
                     <div className="text-right flex-shrink-0">
                       <div className="font-black text-yellow-400 text-sm">💰 +{stage.winReward}</div>
@@ -408,6 +440,8 @@ export default function BattleScreen({ state, onBack, onEarnCoins }) {
     const won = battleResult === 'win';
     const reward = won ? selectedStage.winReward : selectedStage.loseReward;
     const isBoss = selectedStage.isBoss;
+    const isFirstClear = won && !clearedStages.includes(selectedStage.id);
+    const rewardInsect = won ? INSECTS.find(i => i.id === selectedStage.rewardInsectId) : null;
 
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-6 text-center"
@@ -448,6 +482,24 @@ export default function BattleScreen({ state, onBack, onEarnCoins }) {
             <p className="text-white/60 text-xs">
               {selectedStage.hint}
             </p>
+          )}
+
+          {/* 初回クリア報酬 */}
+          {isFirstClear && rewardInsect && (
+            <div className="mt-2 border-t border-white/20 pt-3 text-center">
+              <div className="text-teal-300 font-black text-sm mb-2">🎁 初回クリア報酬！</div>
+              <div className="flex items-center gap-3 bg-white/10 rounded-xl p-2">
+                <InsectAvatar insect={rewardInsect} size={52}/>
+                <div className="text-left">
+                  <div className="text-white font-black text-sm">{rewardInsect.name}</div>
+                  <div className="text-teal-300 text-xs font-bold">⚔️ バトル限定むし</div>
+                  <div className="text-white/60 text-xs">ずかんに登録されたよ！</div>
+                </div>
+              </div>
+            </div>
+          )}
+          {won && !isFirstClear && rewardInsect && (
+            <p className="text-white/40 text-xs text-center mt-1">✅ {rewardInsect.name} は入手済み</p>
           )}
         </div>
 

@@ -1,6 +1,37 @@
 export const DUPLICATE_COINS = 10;
 
 export const INSECTS = [
+  // ===== バトル限定 (6種) =====
+  { id:'bt01', name:'タガメ', nameEn:'Kirkaldyia deyrolli',
+    origin:'日本・東アジア', length:'48〜65mm', rarity:'battle', world:1,
+    description:'日本最大の水生昆虫。強力な前脚で魚やカエルさえも捕まえる水中の最強ハンター。かつては全国の水田に生息したが、今は幻の昆虫となっている。',
+    imagePath:'/assets/insects/bt01.jpg', bgColor:'#1e3a5f', labelColor:'#fff' },
+
+  { id:'bt02', name:'ニジイロクワガタ', nameEn:'Phalacrognathus muelleri',
+    origin:'オーストラリア・パプアニューギニア', length:'35〜70mm', rarity:'battle', world:2,
+    description:'その名の通り虹のように輝く体色が世界最美のクワガタと称される。緑・赤・金が混ざり合う金属光沢は見る角度で七色に変化する。',
+    imagePath:'/assets/insects/bt02.jpg', bgColor:'#14532d', labelColor:'#fff' },
+
+  { id:'bt03', name:'ヤマトタマムシ', nameEn:'Chrysochroa fulgidissima',
+    origin:'日本', length:'30〜40mm', rarity:'battle', world:1,
+    description:'緑と赤の金属光沢が美しい日本の宝石虫。法隆寺の玉虫厨子にも使われ「飛ぶ宝石」と呼ばれる。エノキやケヤキの枯れ木に生息する。',
+    imagePath:'/assets/insects/bt03.jpg', bgColor:'#134e4a', labelColor:'#fff' },
+
+  { id:'bt04', name:'ゴライアスオオツノハナムグリ', nameEn:'Goliathus goliatus',
+    origin:'アフリカ中央部', length:'50〜110mm', rarity:'battle', world:2,
+    description:'世界最重の飛翔昆虫。幼虫時に100gを超えることもあり、成虫でも体重60g以上。聖書の巨人ゴリアテの名を持つ昆虫界の王者。',
+    imagePath:'/assets/insects/bt04.jpg', bgColor:'#1c1917', labelColor:'#fff' },
+
+  { id:'bt05', name:'ヨナグニサン', nameEn:'Attacus atlas',
+    origin:'与那国島・東南アジア', length:'250〜300mm(翅開長)', rarity:'battle', world:1,
+    description:'世界最大の蛾。翅を広げると30cmにも達し、翅端の蛇頭模様で天敵を威嚇する。成虫は口が退化しており、幼虫時に蓄えた栄養だけで一生を終える。',
+    imagePath:'/assets/insects/bt05.jpg', bgColor:'#78350f', labelColor:'#fff' },
+
+  { id:'bt06', name:'コーカサスオオカブト', nameEn:'Chalcosoma chiron',
+    origin:'東南アジア', length:'60〜130mm', rarity:'battle', world:2,
+    description:'3本の長い角を持つカブトムシの王者。頭角・胸角が巨大で他のカブトムシを圧倒する戦闘力を誇る。「生きた戦車」とも呼ばれる最強のカブトムシ。',
+    imagePath:'/assets/insects/bt06.jpg', bgColor:'#1c1917', labelColor:'#fff' },
+
   // ===== レジェンドレア (3種) =====
   { id:'lg01', name:'ダイオウヒラタクワガタ', nameEn:'Dorcus titanus palawanicus',
     origin:'フィリピン・パラワン島', length:'25〜100mm', rarity:'legend', world:2,

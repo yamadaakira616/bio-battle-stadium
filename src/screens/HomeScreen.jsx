@@ -54,6 +54,11 @@ export default function HomeScreen({ state, onPlay, onEncyclopedia, onGacha, onB
           <div className="text-xs text-gray-500">コイン</div>
         </div>
         <div className="flex-1 bg-white rounded-xl p-3 text-center shadow">
+          <div className="text-2xl font-black">⚔️</div>
+          <div className="text-lg font-black">{state.battlePoints ?? 0}</div>
+          <div className="text-xs text-gray-500">バトルPT</div>
+        </div>
+        <div className="flex-1 bg-white rounded-xl p-3 text-center shadow">
           <div className="text-2xl font-black">⭐</div>
           <div className="text-lg font-black">{state.totalStars}</div>
           <div className="text-xs text-gray-500">ほし</div>

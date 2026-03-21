@@ -11,8 +11,10 @@ const DEFAULT_STATE = {
   totalStars: 0,
   bestCombo: 0,
   totalPlayed: 0,
-  levelPlayCount: {},  // { [level]: number } 同一レベルの累計プレイ回数
-  insectLevels: {},    // { [insectId]: number } 昆虫育成レベル (1-10)
+  levelPlayCount: {},   // { [level]: number } 同一レベルの累計プレイ回数
+  insectLevels: {},     // { [insectId]: number } 昆虫育成レベル (1-10)
+  battlePoints: 0,      // バトル可能回数（問題1クリア=+1）
+  clearedStages: [],    // クリア済みバトルステージID（初回報酬管理）
 };
 
 // 同一レベル繰り返しによるコイン倍率
@@ -124,5 +126,29 @@ export function useGameState() {
     return pullGachaResultRef.current;
   }
 
-  return { state, addCoins, spendCoins, levelUp, saveStars, updateBestCombo, incTotalPlayed, incLevelPlayCount, pullGacha, trainInsect };
+  // バトルポイント: 算数1レベルクリアごとに+1、バトル開始で-1
+  function earnBattlePoint() {
+    setState(s => ({ ...s, battlePoints: (s.battlePoints ?? 0) + 1 }));
+  }
+
+  function spendBattlePoint() {
+    setState(s => ({ ...s, battlePoints: Math.max(0, (s.battlePoints ?? 0) - 1) }));
+  }
+
+  // バトル限定昆虫の入手 & ステージクリア記録
+  function clearStageAndEarnInsect(stageId, insectId) {
+    setState(s => {
+      const alreadyCleared = (s.clearedStages ?? []).includes(stageId);
+      const newClearedStages = alreadyCleared
+        ? s.clearedStages
+        : [...(s.clearedStages ?? []), stageId];
+      const alreadyOwned = s.collection.includes(insectId);
+      const newCollection = (!alreadyCleared && !alreadyOwned)
+        ? [...s.collection, insectId]
+        : s.collection;
+      return { ...s, clearedStages: newClearedStages, collection: newCollection };
+    });
+  }
+
+  return { state, addCoins, spendCoins, levelUp, saveStars, updateBestCombo, incTotalPlayed, incLevelPlayCount, pullGacha, trainInsect, earnBattlePoint, spendBattlePoint, clearStageAndEarnInsect };
 }

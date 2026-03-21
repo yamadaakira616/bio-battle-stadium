@@ -19,7 +19,7 @@ const SCREEN = {
 export default function App() {
   const [screen, setScreen] = useState(SCREEN.HOME);
   const [selectedLevel, setSelectedLevel] = useState(null);
-  const { state, addCoins, spendCoins, levelUp, saveStars, updateBestCombo, incLevelPlayCount, pullGacha, trainInsect } = useGameState();
+  const { state, addCoins, spendCoins, levelUp, saveStars, updateBestCombo, incLevelPlayCount, pullGacha, trainInsect, earnBattlePoint, spendBattlePoint, clearStageAndEarnInsect } = useGameState();
 
   if (screen === SCREEN.HOME) return (
     <HomeScreen
@@ -48,7 +48,7 @@ export default function App() {
       onLevelUp={levelUp}
       onSaveStars={saveStars}
       onBestCombo={updateBestCombo}
-      onIncPlayed={incLevelPlayCount}
+      onIncPlayed={lvl => { incLevelPlayCount(lvl); earnBattlePoint(); }}
     />
   );
 
@@ -74,6 +74,8 @@ export default function App() {
       state={state}
       onBack={() => setScreen(SCREEN.HOME)}
       onEarnCoins={addCoins}
+      onSpendBattlePoint={spendBattlePoint}
+      onClearStage={clearStageAndEarnInsect}
     />
   );
 

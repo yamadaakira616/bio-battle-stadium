@@ -6,6 +6,7 @@ const RARITY_LABELS = {
   superRare: { label: 'SR', color: '#a855f7' },
   ultra: { label: 'ULTRA', color: '#f59e0b' },
   legend: { label: '👑 LEGEND', color: '#dc2626' },
+  battle: { label: '⚔️ バトル', color: '#0f766e' },
 };
 
 // Inline SVG silhouette for fallback

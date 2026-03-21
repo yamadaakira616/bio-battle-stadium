@@ -9,10 +9,11 @@ const TABS = [
   { key: 'superRare', label: 'SR' },
   { key: 'ultra',     label: 'ウルトラ' },
   { key: 'legend',    label: '👑 LG' },
+  { key: 'battle',    label: '⚔️ バトル' },
 ];
 
 const RARITY_COLORS = {
-  common: '#9ca3af', rare: '#3b82f6', superRare: '#a855f7', ultra: '#f59e0b', legend: '#ffd700',
+  common: '#9ca3af', rare: '#3b82f6', superRare: '#a855f7', ultra: '#f59e0b', legend: '#ffd700', battle: '#0f766e',
 };
 
 export default function EncyclopediaScreen({ state, onBack, onTrain, onSpendCoins }) {
