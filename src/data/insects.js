@@ -1,11 +1,21 @@
 export const DUPLICATE_COINS = 10;
 
 export const INSECTS = [
-  // ===== レジェンドレア (1種) =====
+  // ===== レジェンドレア (3種) =====
   { id:'lg01', name:'ダイオウヒラタクワガタ', nameEn:'Dorcus titanus palawanicus',
     origin:'フィリピン・パラワン島', length:'25〜100mm', rarity:'legend', world:2,
     description:'世界最大級のヒラタクワガタ。パラワン島産の亜種は体長100mmを超える個体も存在し、驚異的な顎の力を誇る伝説の昆虫。',
     imagePath:'/assets/insects/lg01.jpg', bgColor:'#0f0a1e', labelColor:'#ffd700' },
+
+  { id:'lg02', name:'リオック', nameEn:'Deinacrida heteracantha',
+    origin:'ニュージーランド', length:'60〜100mm', rarity:'legend', world:1,
+    description:'ニュージーランド固有の世界最重量級の昆虫。体重70gを超える個体もいる「生きた化石」。飛べない代わりに強靭な脚を持ち、数千万年前から姿を変えていない。',
+    imagePath:'/assets/insects/lg02.jpg', bgColor:'#1c1507', labelColor:'#ffd700' },
+
+  { id:'lg03', name:'オオエンマハンミョウ', nameEn:'Sophiodela japonica',
+    origin:'日本', length:'19〜24mm', rarity:'legend', world:1,
+    description:'日本最大のハンミョウ。エメラルドグリーンと銅色が混じる宝石のような体色を持ち、俊足で獲物を追う最強の地上ハンター。生息地が限られ、幻の昆虫とされる。',
+    imagePath:'/assets/insects/lg03.jpg', bgColor:'#052e16', labelColor:'#ffd700' },
 
   // ===== ウルトラ (6種) =====
   { id:'u01', name:'スマトラオオヒラタクワガタ', nameEn:'Dorcus titanus titanus',
@@ -405,10 +415,10 @@ export const INSECTS = [
 export function rollGacha() {
   const rand = Math.random() * 100;
   let rarity;
-  if (rand < 0.5)      rarity = 'legend';
-  else if (rand < 3.5) rarity = 'ultra';
-  else if (rand < 15.5) rarity = 'superRare';
-  else if (rand < 40.5) rarity = 'rare';
+  if (rand < 1.0)      rarity = 'legend';
+  else if (rand < 4.0) rarity = 'ultra';
+  else if (rand < 16.0) rarity = 'superRare';
+  else if (rand < 41.0) rarity = 'rare';
   else                  rarity = 'common';
   const pool = INSECTS.filter(i => i.rarity === rarity);
   return pool[Math.floor(Math.random() * pool.length)];
