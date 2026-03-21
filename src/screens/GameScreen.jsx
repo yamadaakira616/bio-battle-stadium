@@ -147,8 +147,8 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
       const newCombo = combo + 1;
       setCombo(newCombo);
       setMaxCombo(m => Math.max(m, newCombo));
-      const comboBonus = Math.min(newCombo - 1, 4) * 5;
-      const speedBonus = answerTimer >= 7 ? 10 : answerTimer >= 4 ? 5 : 0;
+      const comboBonus = Math.min(newCombo - 1, 3) * 2;
+      const speedBonus = answerTimer >= 7 ? 3 : answerTimer >= 4 ? 1 : 0;
       const rawTotal = COINS_PER_CORRECT + comboBonus + speedBonus;
       const total = Math.max(1, Math.round(rawTotal * coinMultiplier));
       onEarnCoins(total);

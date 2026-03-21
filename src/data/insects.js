@@ -1,4 +1,4 @@
-export const DUPLICATE_COINS = 30;
+export const DUPLICATE_COINS = 10;
 
 export const INSECTS = [
   // ===== レジェンドレア (1種) =====

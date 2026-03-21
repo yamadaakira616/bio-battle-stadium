@@ -88,12 +88,12 @@ export function generateChoices(answer, digits) {
 
 export const QUESTIONS_PER_LEVEL = 5;
 export const GACHA_COST = 100;
-export const COINS_PER_CORRECT = 10;
+export const COINS_PER_CORRECT = 3;
 export const WORLD_COLORS = {
   1: { bg: '#fef9c3', accent: '#f97316', name: '1けたワールド 🌱' },
   2: { bg: '#dbeafe', accent: '#3b82f6', name: '2けたワールド 🌊' },
   3: { bg: '#ede9fe', accent: '#a855f7', name: '3けたワールド 🌌' },
 };
 
-export function coinsPerLevel(level) { return 30 + level * 10; }
-export function starsCoins(stars) { return [0, 20, 50, 100][stars] || 0; }
+export function coinsPerLevel(level) { return 5 + Math.floor(level / 5); }
+export function starsCoins(stars) { return [0, 3, 6, 10][stars] || 0; }
