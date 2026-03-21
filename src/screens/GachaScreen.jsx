@@ -3,6 +3,7 @@ import Confetti from '../components/Confetti.jsx';
 import InsectCard from '../components/InsectCard.jsx';
 import { rollGacha, DUPLICATE_COINS } from '../data/insects.js';
 import { GACHA_COST } from '../utils/gameLogic.js';
+import { playGachaTick, playGachaSlowTick, playGachaReveal, playGachaFlash } from '../utils/sound.js';
 
 const RARITY_LABELS = { common:'ノーマル', rare:'レア', superRare:'スーパーレア！', ultra:'🔥 ULTRA!!! 🔥', legend:'👑 LEGEND ✨' };
 const RARITY_COLORS = {
@@ -73,6 +74,7 @@ export default function GachaScreen({ state, onBack, onPull }) {
 
       idx = (idx + 1) % ROULETTE_SEQUENCE.length;
       setRouletteIdx(idx);
+      if (progress < 0.7) playGachaTick(); else playGachaSlowTick();
       rouletteRef.current = setTimeout(tick, speed);
     }
 
@@ -89,12 +91,14 @@ export default function GachaScreen({ state, onBack, onPull }) {
     function doFlash() {
       setScreenFlash(f => !f);
       if (insect.rarity === 'legend') setRainbowIdx(i => (i + 1) % RAINBOW.length);
+      playGachaFlash();
       count++;
       if (count < maxFlash * 2) {
         timerRef.current = setTimeout(doFlash, flashInterval);
       } else {
         setScreenFlash(false);
         setPhase('reveal');
+        playGachaReveal(insect.rarity);
         timerRef.current = setTimeout(() => {
           const { isNew: n } = onPull(insect);
           setIsNew(n);

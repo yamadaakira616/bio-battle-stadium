@@ -88,12 +88,25 @@ export function generateChoices(answer, digits) {
 
 export const QUESTIONS_PER_LEVEL = 5;
 export const GACHA_COST = 100;
-export const COINS_PER_CORRECT = 3;
+export const COINS_PER_CORRECT = 2; // 即時フィードバック（小さめ）
 export const WORLD_COLORS = {
   1: { bg: '#fef9c3', accent: '#f97316', name: '1けたワールド 🌱' },
   2: { bg: '#dbeafe', accent: '#3b82f6', name: '2けたワールド 🌊' },
   3: { bg: '#ede9fe', accent: '#a855f7', name: '3けたワールド 🌌' },
 };
 
-export function coinsPerLevel(level) { return 5 + Math.floor(level / 5); }
+// レベルクリア時の完了ボーナス
+// playCount: 0=初回, 1=2回目...
+// correctCount: 正解数 (0-5)
+export function calcLevelBonus(correctCount, playCount) {
+  // 全問正解ベース: 初回400, 2回目200, 3回目100, 4回目以降50
+  const PERFECT_BASE = [400, 200, 100, 50];
+  const base = PERFECT_BASE[Math.min(playCount, PERFECT_BASE.length - 1)];
+
+  if (correctCount === 5) return base;
+  if (correctCount === 4) return Math.floor(base * 0.3);  // 4/5: 30%
+  if (correctCount === 3) return Math.floor(base * 0.08); // 3/5: 8%
+  return 0;
+}
+
 export function starsCoins(stars) { return [0, 3, 6, 10][stars] || 0; }

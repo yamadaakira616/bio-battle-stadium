@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { generateFlashProblem, generateChoices, getLevelConfig, QUESTIONS_PER_LEVEL, COINS_PER_CORRECT, starsCoins } from '../utils/gameLogic';
+import { generateFlashProblem, generateChoices, getLevelConfig, QUESTIONS_PER_LEVEL, COINS_PER_CORRECT, calcLevelBonus } from '../utils/gameLogic';
 import { getLevelCoinMultiplier } from '../hooks/useGameState.js';
-import { playFlash, playCorrect, playWrong, playLevelUp, playCombo, playCountdown, playGo } from '../utils/sound';
+import { playFlash, playCorrect, playWrong, playLevelUp, playPerfect, playCombo, playCountdown, playGo, playCoinGet } from '../utils/sound';
 import Confetti from '../components/Confetti';
 
 const Phase = { COUNTDOWN:'countdown', FLASH:'flash', BLANK:'blank', ANSWER:'answer', FEEDBACK:'feedback', LEVELUP:'levelup', RESULT:'result' };
@@ -147,10 +147,8 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
       const newCombo = combo + 1;
       setCombo(newCombo);
       setMaxCombo(m => Math.max(m, newCombo));
-      const comboBonus = Math.min(newCombo - 1, 3) * 2;
-      const speedBonus = answerTimer >= 7 ? 3 : answerTimer >= 4 ? 1 : 0;
-      const rawTotal = COINS_PER_CORRECT + comboBonus + speedBonus;
-      const total = Math.max(1, Math.round(rawTotal * coinMultiplier));
+      const comboBonus = Math.min(newCombo - 1, 3); // コンボ: +1〜+3
+      const total = COINS_PER_CORRECT + comboBonus;
       onEarnCoins(total);
       setEarnedCoins(e => e + total);
       setCorrectCount(c => {
@@ -181,17 +179,22 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
         const stars = calcStars(finalCorrect);
         onSaveStars(level, stars);
         onBestCombo(Math.max(maxCombo, combo + (ok ? 1 : 0)));
+        onIncPlayed(level);
         if (stars >= 1) {
-          const starBonus = Math.max(1, Math.round(starsCoins(stars) * coinMultiplier));
-          onEarnCoins(starBonus);
-          playLevelUp();
+          const bonus = calcLevelBonus(finalCorrect, levelPlayCount);
+          if (bonus > 0) {
+            onEarnCoins(bonus);
+            if (finalCorrect === 5) playPerfect(); else playLevelUp();
+            if (bonus >= 100) setTimeout(() => playCoinGet(), 800);
+          } else {
+            playLevelUp();
+          }
           // BUG-05: レベル再プレイ時は最大レベルを上書きしない
           if (level < 50 && level >= (maxLevel ?? level)) onLevelUp();
           setPhase(Phase.LEVELUP);
         } else {
           setPhase(Phase.RESULT);
         }
-        onIncPlayed(level);
       } else {
         setQuestionNum(n => n + 1);
         startQuestion(false); // カウントダウンなし
@@ -203,17 +206,31 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
   if (phase === Phase.LEVELUP) {
     const finalCorrect = correctCountRef.current;
     const stars = calcStars(finalCorrect);
+    const bonus = calcLevelBonus(finalCorrect, levelPlayCount);
+    const isPerfect = finalCorrect === QUESTIONS_PER_LEVEL;
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-5 p-6 text-center">
         <Confetti active={true} />
-        <div className="text-9xl animate-bounce-in">🎉</div>
-        <h2 className="text-4xl font-black text-yellow-500" style={{ textShadow:'3px 3px 0 #f97316' }}>クリア！</h2>
+        <div className="text-9xl animate-bounce-in">{isPerfect ? '🌟' : '🎉'}</div>
+        <h2 className="text-4xl font-black text-yellow-500" style={{ textShadow:'3px 3px 0 #f97316' }}>
+          {isPerfect ? 'パーフェクト！' : 'クリア！'}
+        </h2>
         <StarRow count={stars} />
         <div className="bg-white/60 rounded-2xl p-4 w-full max-w-xs space-y-2">
           <div className="flex justify-between font-bold"><span>せいかい</span><span>{finalCorrect}/{QUESTIONS_PER_LEVEL}もん</span></div>
           <div className="flex justify-between font-bold"><span>さいこうコンボ</span><span>🔥 x{maxCombo}</span></div>
-          <div className="flex justify-between font-bold text-yellow-600"><span>ゲットしたコイン</span><span>🪙 {earnedCoins + starsCoins(stars)}</span></div>
+          <div className="border-t border-gray-300 pt-2 flex justify-between font-bold text-gray-500"><span>もんだいコイン</span><span>🪙 {earnedCoins}</span></div>
+          {bonus > 0 && (
+            <div className="flex justify-between font-black text-orange-500 text-lg">
+              <span>{isPerfect ? '✨ パーフェクト' : '⭐ クリア'}ボーナス</span>
+              <span>🪙 +{bonus}</span>
+            </div>
+          )}
+          <div className="border-t border-gray-300 pt-2 flex justify-between font-black text-yellow-600 text-xl">
+            <span>ごうけい</span><span>🪙 {earnedCoins + bonus}</span>
+          </div>
         </div>
+        {bonus === 400 && <p className="font-black text-orange-500 text-sm animate-pulse">🎊 はじめてのパーフェクト！ ボーナス400コイン！！</p>}
         {level < 50 && <p className="font-bold text-green-600">Lv.{level} → Lv.{level + 1}!</p>}
         <button onClick={onBack}
           className="px-10 py-4 text-xl font-black text-white rounded-3xl active:scale-95 transition-transform"

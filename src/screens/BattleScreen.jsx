@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { INSECTS } from '../data/insects.js';
 import { getInsectStats, simulateBattle, MAX_INSECT_LEVEL } from '../utils/battleLogic.js';
+import { playBattleAttack, playBattleHit, playBattleCritical, playBattleWin, playBattleLose, playBattleStart } from '../utils/sound.js';
 
 const RARITY_LABEL = { common:'ノーマル', rare:'レア', superRare:'SR', ultra:'ULTRA', legend:'👑 LEGEND' };
 const RARITY_COLOR = { common:'#6b7280', rare:'#2563eb', superRare:'#7c3aed', ultra:'#d97706', legend:'#ffd700' };
@@ -144,6 +145,7 @@ export default function BattleScreen({ state, onBack, onEarnCoins }) {
     setAttackAnim(null);
     setShowDamage(null);
     setBattleResult(null);
+    playBattleStart();
     setPhase('battle');
   }
 
@@ -158,14 +160,17 @@ export default function BattleScreen({ state, onBack, onEarnCoins }) {
         const won = entry.result === 'win';
         const reward = won ? selectedStage.winReward : selectedStage.loseReward;
         onEarnCoins(reward);
+        if (won) playBattleWin(); else playBattleLose();
         setPhase('result');
       }, 800);
       return;
     }
 
+    playBattleAttack();
     setAttackAnim(entry.attacker);
     timerRef.current = setTimeout(() => {
       setAttackAnim(null);
+      if (entry.critical) playBattleCritical(); else playBattleHit();
       if (entry.attacker === 'player') setEnemyHp(entry.enemyHp);
       else setPlayerHp(entry.playerHp);
       setShowDamage({ target: entry.attacker === 'player' ? 'enemy' : 'player', value: entry.damage, critical: entry.critical });
