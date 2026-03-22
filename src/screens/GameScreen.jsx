@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { generateFlashProblem, generateChoices, getLevelConfig, QUESTIONS_PER_LEVEL, COINS_PER_CORRECT, calcLevelBonus } from '../utils/gameLogic';
-import { getLevelCoinMultiplier } from '../hooks/useGameState.js';
-import { playFlash, playCorrect, playWrong, playLevelUp, playPerfect, playCombo, playCountdown, playGo, playCoinGet } from '../utils/sound';
+import { generateFlashProblem, generateChoices, getLevelConfig, QUESTIONS_PER_LEVEL, calcPlayReward } from '../utils/gameLogic';
+import { playFlash, playCorrect, playWrong, playLevelUp, playPerfect, playCountdown, playGo, playCoinGet } from '../utils/sound';
 import Confetti from '../components/Confetti';
 
 const Phase = { COUNTDOWN:'countdown', FLASH:'flash', BLANK:'blank', ANSWER:'answer', FEEDBACK:'feedback', LEVELUP:'levelup', RESULT:'result' };
@@ -19,10 +18,7 @@ function StarRow({ count }) {
 export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLevelUp, onSaveStars, onBestCombo, onIncPlayed }) {
   const { level, coins } = state;
   const config = getLevelConfig(level);
-  // コイン減衰: 同じレベルを繰り返すほど獲得コインが減る
   const levelPlayCount = state.levelPlayCount?.[String(level)] ?? 0;
-  const coinMultiplier = getLevelCoinMultiplier(levelPlayCount);
-  const isFirstPlay = levelPlayCount === 0;
 
   const [phase, setPhase]               = useState(Phase.COUNTDOWN);
   const [countdown, setCountdown]       = useState(3);
@@ -147,15 +143,11 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
       const newCombo = combo + 1;
       setCombo(newCombo);
       setMaxCombo(m => Math.max(m, newCombo));
-      const comboBonus = Math.min(newCombo - 1, 3); // コンボ: +1〜+3
-      const total = COINS_PER_CORRECT + comboBonus;
-      onEarnCoins(total);
-      setEarnedCoins(e => e + total);
       setCorrectCount(c => {
         correctCountRef.current = c + 1;
         return c + 1;
       });
-      if (newCombo >= 2) playCombo(); else playCorrect();
+      playCorrect();
       if (newCombo >= 3) {
         setShowConfetti(true);
         clearTimeout(confettiTimerRef.current);
@@ -181,14 +173,11 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
         onBestCombo(Math.max(maxCombo, combo + (ok ? 1 : 0)));
         onIncPlayed(level);
         if (stars >= 1) {
-          const bonus = calcLevelBonus(finalCorrect, levelPlayCount);
-          if (bonus > 0) {
-            onEarnCoins(bonus);
-            if (finalCorrect === 5) playPerfect(); else playLevelUp();
-            if (bonus >= 100) setTimeout(() => playCoinGet(), 800);
-          } else {
-            playLevelUp();
-          }
+          const reward = calcPlayReward(finalCorrect);
+          onEarnCoins(reward);
+          setEarnedCoins(reward);
+          if (finalCorrect === 5) { playPerfect(); setTimeout(() => playCoinGet(), 800); }
+          else { playLevelUp(); if (reward > 0) setTimeout(() => playCoinGet(), 800); }
           // BUG-05: レベル再プレイ時は最大レベルを上書きしない
           if (level < 50 && level >= (maxLevel ?? level)) onLevelUp();
           setPhase(Phase.LEVELUP);
@@ -206,7 +195,7 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
   if (phase === Phase.LEVELUP) {
     const finalCorrect = correctCountRef.current;
     const stars = calcStars(finalCorrect);
-    const bonus = calcLevelBonus(finalCorrect, levelPlayCount);
+    const reward = calcPlayReward(finalCorrect);
     const isPerfect = finalCorrect === QUESTIONS_PER_LEVEL;
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-5 p-6 text-center">
@@ -219,18 +208,11 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
         <div className="bg-white/60 rounded-2xl p-4 w-full max-w-xs space-y-2">
           <div className="flex justify-between font-bold"><span>せいかい</span><span>{finalCorrect}/{QUESTIONS_PER_LEVEL}もん</span></div>
           <div className="flex justify-between font-bold"><span>さいこうコンボ</span><span>🔥 x{maxCombo}</span></div>
-          <div className="border-t border-gray-300 pt-2 flex justify-between font-bold text-gray-500"><span>もんだいコイン</span><span>🪙 {earnedCoins}</span></div>
-          {bonus > 0 && (
-            <div className="flex justify-between font-black text-orange-500 text-lg">
-              <span>{isPerfect ? '✨ パーフェクト' : '⭐ クリア'}ボーナス</span>
-              <span>🪙 +{bonus}</span>
-            </div>
-          )}
           <div className="border-t border-gray-300 pt-2 flex justify-between font-black text-yellow-600 text-xl">
-            <span>ごうけい</span><span>🪙 {earnedCoins + bonus}</span>
+            <span>🪙 コイン</span><span>+{reward}</span>
           </div>
         </div>
-        {bonus === 400 && <p className="font-black text-orange-500 text-sm animate-pulse">🎊 はじめてのパーフェクト！ ボーナス400コイン！！</p>}
+        {isPerfect && <p className="font-black text-orange-500 text-sm animate-pulse">🎊 5問全部せいかい！最高の{reward}コイン！！</p>}
         {level < 50 && <p className="font-bold text-green-600">Lv.{level} → Lv.{level + 1}!</p>}
         <button onClick={onBack}
           className="px-10 py-4 text-xl font-black text-white rounded-3xl active:scale-95 transition-transform"
@@ -306,12 +288,6 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
       <div className="flex gap-2 flex-wrap justify-center">
         <span className="bg-yellow-100 border-2 border-yellow-400 rounded-full px-3 py-1 font-bold text-sm">⭐ Lv.{level}</span>
         <span className="bg-gray-100 border-2 border-gray-300 rounded-full px-3 py-1 font-bold text-sm">{questionNum}/{QUESTIONS_PER_LEVEL}</span>
-        {!isFirstPlay && (
-          <span className="rounded-full px-3 py-1 font-bold text-xs text-white"
-                style={{ background: coinMultiplier >= 0.75 ? '#f97316' : coinMultiplier >= 0.5 ? '#ef4444' : '#7f1d1d' }}>
-            🪙 ×{Math.round(coinMultiplier * 100)}%
-          </span>
-        )}
         {combo >= 2 && (
           <span className="rounded-full px-3 py-1 font-bold text-sm text-white animate-pulse-scale"
                 style={{ background:'linear-gradient(135deg,#f97316,#ef4444)' }}>
@@ -319,12 +295,6 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
           </span>
         )}
       </div>
-      {/* 初回プレイ以外はコイン減衰の説明を表示 */}
-      {!isFirstPlay && phase === 'countdown' && (
-        <div className="text-xs text-center px-4 py-1 rounded-full bg-red-50 border border-red-200 text-red-600 font-bold">
-          このレベルは{levelPlayCount + 1}回目。コイン{Math.round(coinMultiplier * 100)}%！上のレベルは100%だよ
-        </div>
-      )}
 
       {/* メインエリア */}
       <div className="flex-1 flex flex-col items-center justify-center gap-6 w-full">

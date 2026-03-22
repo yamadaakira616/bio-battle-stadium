@@ -88,25 +88,18 @@ export function generateChoices(answer, digits) {
 
 export const QUESTIONS_PER_LEVEL = 5;
 export const GACHA_COST = 100;
-export const COINS_PER_CORRECT = 2; // 即時フィードバック（小さめ）
+export const COINS_PER_CORRECT = 100; // 1問正解で100コイン
+export const MAX_COINS_PER_PLAY = 400; // 1回のプレイの上限
 export const WORLD_COLORS = {
   1: { bg: '#fef9c3', accent: '#f97316', name: '1けたワールド 🌱' },
   2: { bg: '#dbeafe', accent: '#3b82f6', name: '2けたワールド 🌊' },
   3: { bg: '#ede9fe', accent: '#a855f7', name: '3けたワールド 🌌' },
 };
 
-// レベルクリア時の完了ボーナス
-// playCount: 0=初回, 1=2回目...
-// correctCount: 正解数 (0-5)
-export function calcLevelBonus(correctCount, playCount) {
-  // 全問正解ベース: 初回400, 2回目200, 3回目100, 4回目以降50
-  const PERFECT_BASE = [400, 200, 100, 50];
-  const base = PERFECT_BASE[Math.min(playCount, PERFECT_BASE.length - 1)];
-
-  if (correctCount === 5) return base;
-  if (correctCount === 4) return Math.floor(base * 0.3);  // 4/5: 30%
-  if (correctCount === 3) return Math.floor(base * 0.08); // 3/5: 8%
-  return 0;
+// 1回のプレイで獲得できるコイン（正解数×100、上限400）
+// 1問=100, 2問=200, 3問=300, 4問=400, 5問=400
+export function calcPlayReward(correctCount) {
+  return Math.min(correctCount * COINS_PER_CORRECT, MAX_COINS_PER_PLAY);
 }
 
 export function starsCoins(stars) { return [0, 3, 6, 10][stars] || 0; }
