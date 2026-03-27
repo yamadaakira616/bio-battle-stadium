@@ -89,7 +89,6 @@ export default function GachaScreen({ state, onBack, onPull }) {
     const maxFlash = sticker.series === 'water-seal' ? 10 : sticker.series === 'shaka-shaka' ? 8 : sticker.series === 'marshmallow' ? 5 : sticker.series === 'bonbon-drop' ? 3 : 1;
     const flashInterval = sticker.series === 'water-seal' ? 90 : sticker.series === 'shaka-shaka' ? 120 : 150;
 
-    const RAINBOW = ['#ff0040','#ff8c00','#ffd700','#00e676','#00b0ff','#7c4dff','#f50057'];
     function doFlash() {
       setScreenFlash(f => !f);
       playGachaFlash();
@@ -113,15 +112,12 @@ export default function GachaScreen({ state, onBack, onPull }) {
   const currentSeries = ROULETTE_SEQUENCE[rouletteIdx % ROULETTE_SEQUENCE.length];
   const colors = result ? (SERIES_COLORS[result.series] ?? SERIES_COLORS.normal) : SERIES_COLORS.normal;
   const isHighRare = result && (result.series === 'water-seal' || result.series === 'shaka-shaka');
-  const isLegend = false;
 
   return (
     <div
       className="min-h-screen flex flex-col items-center relative overflow-hidden"
       style={{
-        background: phase === 'result' && isLegend
-          ? 'linear-gradient(135deg,#0f0a1e 0%,#1a0533 30%,#0a1628 60%,#0f0a1e 100%)'
-          : phase === 'result'
+        background: phase === 'result'
           ? `linear-gradient(180deg, ${colors.bg} 0%, #fdf2f8 100%)`
           : 'linear-gradient(180deg,#2d0a3e 0%,#4a1260 50%,#2d0a3e 100%)',
         transition: 'background 0.8s ease',
@@ -131,9 +127,7 @@ export default function GachaScreen({ state, onBack, onPull }) {
       {screenFlash && (
         <div className="fixed inset-0 z-50 pointer-events-none"
              style={{
-               background: isLegend
-                 ? `linear-gradient(135deg,${['#ff0040','#ff8c00','#ffd700','#00e676','#00b0ff','#7c4dff','#f50057'][rainbowIdx]},${['#ff8c00','#ffd700','#00e676','#00b0ff','#7c4dff','#f50057','#ff0040'][rainbowIdx]})`
-                 : colors.flash,
+               background: colors.flash,
                opacity: 0.75,
              }}/>
       )}
