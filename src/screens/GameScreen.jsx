@@ -19,6 +19,7 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
   const { level, coins } = state;
   const config = getLevelConfig(level);
   const levelPlayCount = state.levelPlayCount?.[String(level)] ?? 0;
+  const isMaxLevel = level >= (maxLevel ?? level);
 
   const [phase, setPhase]               = useState(Phase.COUNTDOWN);
   const [countdown, setCountdown]       = useState(3);
@@ -173,7 +174,7 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
         onBestCombo(Math.max(maxCombo, combo + (ok ? 1 : 0)));
         onIncPlayed(level);
         if (stars >= 1) {
-          const reward = calcPlayReward(finalCorrect);
+          const reward = calcPlayReward(finalCorrect, levelPlayCount, isMaxLevel);
           onEarnCoins(reward);
           setEarnedCoins(reward);
           if (finalCorrect === 5) { playPerfect(); setTimeout(() => playCoinGet(), 800); }
@@ -195,7 +196,7 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
   if (phase === Phase.LEVELUP) {
     const finalCorrect = correctCountRef.current;
     const stars = calcStars(finalCorrect);
-    const reward = calcPlayReward(finalCorrect);
+    const reward = calcPlayReward(finalCorrect, levelPlayCount, isMaxLevel);
     const isPerfect = finalCorrect === QUESTIONS_PER_LEVEL;
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-5 p-6 text-center"

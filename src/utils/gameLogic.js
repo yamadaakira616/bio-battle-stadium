@@ -96,10 +96,12 @@ export const WORLD_COLORS = {
   3: { bg: '#ede9fe', accent: '#a855f7', name: '3けたワールド 🌌' },
 };
 
-// 1回のプレイで獲得できるコイン（正解数×100、上限400）
-// 1問=100, 2問=200, 3問=300, 4問=400, 5問=400
-export function calcPlayReward(correctCount) {
-  return Math.min(correctCount * COINS_PER_CORRECT, MAX_COINS_PER_PLAY);
+// 1回のプレイで獲得できるコイン
+// 最上位レベル: 常に最大300コイン
+// それ以外: 初回300、2回目150、3回目75、4回目以降50固定（正解数に比例）
+export function calcPlayReward(correctCount, playCount = 0, isMaxLevel = false) {
+  const baseMax = isMaxLevel ? 300 : Math.max(50, Math.round(300 / Math.pow(2, playCount)));
+  return Math.round((correctCount / QUESTIONS_PER_LEVEL) * baseMax);
 }
 
 export function starsCoins(stars) { return [0, 3, 6, 10][stars] || 0; }
