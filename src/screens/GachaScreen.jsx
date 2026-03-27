@@ -29,8 +29,6 @@ export default function GachaScreen({ state, onBack, onPull }) {
   const [result, setResult]   = useState(null);
   const [isNew, setIsNew]     = useState(false);
   const [rouletteIdx, setRouletteIdx] = useState(0);
-  const [flashCount, setFlashCount]   = useState(0);
-  const [rainbowIdx, setRainbowIdx]   = useState(0);
   const [screenFlash, setScreenFlash] = useState(false);
   const timerRef = useRef(null);
   const rouletteRef = useRef(null);
@@ -69,8 +67,8 @@ export default function GachaScreen({ state, onBack, onPull }) {
       if (elapsed >= totalDuration) {
         clearInterval(rouletteRef.current);
         // 最終的なシリーズに一致するインデックスで止める
-        const finalIdx = ROULETTE_SEQUENCE.findIndex((s, i) => i >= idx % ROULETTE_SEQUENCE.length && s === sticker.series)
-          ?? ROULETTE_SEQUENCE.findIndex(s => s === sticker.series);
+        const forwardIdx = ROULETTE_SEQUENCE.findIndex((s, i) => i >= idx % ROULETTE_SEQUENCE.length && s === sticker.series);
+        const finalIdx = forwardIdx >= 0 ? forwardIdx : ROULETTE_SEQUENCE.findIndex(s => s === sticker.series);
         setRouletteIdx(finalIdx >= 0 ? finalIdx : idx);
         startFlash(sticker);
         return;
