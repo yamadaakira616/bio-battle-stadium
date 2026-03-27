@@ -1,98 +1,103 @@
 import ProfessorMascot from '../components/ProfessorMascot.jsx';
-import { INSECTS } from '../data/insects.js';
+import { STICKERS } from '../data/stickers.js';
 import { GACHA_COST } from '../utils/gameLogic.js';
 
-export default function HomeScreen({ state, onPlay, onEncyclopedia, onGacha, onBattle }) {
+export default function HomeScreen({ state, onPlay, onEncyclopedia, onGacha, onStickerBook }) {
   const owned = state.collection.length;
-  const total = INSECTS.length;
+  const total = STICKERS.length;
   const pct = Math.round((owned / total) * 100);
 
   const greeting = owned === 0
-    ? 'むしずかんをコンプリートしよう！'
+    ? 'シールをぜんぶ集めよう！🩷'
     : owned === total
-    ? 'すごい！全部の虫を集めたよ！🎉'
-    : `あと ${total - owned} ひき集めよう！`;
+    ? 'すごい！全部のシールを集めたよ！🎉'
+    : `あと ${total - owned} まいのシールをゲットしよう！`;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-between py-6 px-4"
-      style={{ background: 'linear-gradient(180deg, #ecfccb 0%, #d9f99d 100%)' }}>
-
-      {/* Title */}
-      <h1 className="text-3xl font-black text-green-800 tracking-tight">
-        🐛 むし算ずかん
+    <div
+      className="min-h-screen flex flex-col items-center justify-between py-6 px-4"
+      style={{ background: 'linear-gradient(180deg, #fce7f3 0%, #fdf2f8 50%, #f5f0ff 100%)' }}
+    >
+      {/* タイトル */}
+      <h1 className="text-3xl font-black tracking-tight" style={{ color: '#831843' }}>
+        🩷 かわいいシールずかん
       </h1>
 
-      {/* Mascot + speech */}
+      {/* マスコット + ふきだし */}
       <div className="flex flex-col items-center gap-2 my-4">
-        <ProfessorMascot size={140} mood={owned === total ? 'excited' : 'happy'}/>
-        <div className="bg-white rounded-2xl px-4 py-2 shadow text-sm font-bold text-green-900 max-w-xs text-center relative">
+        <ProfessorMascot size={140} mood={owned === total ? 'excited' : 'happy'} />
+        <div
+          className="rounded-2xl px-4 py-2 shadow text-sm font-bold max-w-xs text-center relative"
+          style={{ background: 'white', color: '#9d174d' }}
+        >
           <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-lg">💬</span>
           {greeting}
         </div>
       </div>
 
-      {/* Encyclopedia progress */}
-      <div className="w-full max-w-sm bg-white rounded-2xl p-4 shadow mb-4">
-        <div className="flex justify-between text-sm font-bold text-green-800 mb-2">
-          <span>🔍 ずかん</span>
-          <span>{owned}/{total}しゅ</span>
+      {/* シール収集進捗 */}
+      <div className="w-full max-w-sm rounded-2xl p-4 shadow mb-4"
+           style={{ background: 'white', border: '2px solid #fbcfe8' }}>
+        <div className="flex justify-between text-sm font-bold mb-2" style={{ color: '#be185d' }}>
+          <span>🩷 シールずかん</span>
+          <span>{owned}/{total}まい</span>
         </div>
-        <div className="w-full bg-green-100 rounded-full h-4 overflow-hidden">
+        <div className="w-full rounded-full h-4 overflow-hidden" style={{ background: '#fce7f3' }}>
           <div
             className="h-4 rounded-full transition-all duration-500"
-            style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #4ade80, #16a34a)' }}
+            style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #f9a8d4, #ec4899)' }}
           />
         </div>
-        <div className="text-right text-xs text-green-600 mt-1">{pct}%</div>
+        <div className="text-right text-xs mt-1" style={{ color: '#ec4899' }}>{pct}%</div>
       </div>
 
-      {/* Level display */}
+      {/* レベル表示 */}
       <div className="w-full max-w-sm mb-3">
-        <div className="bg-white rounded-2xl px-4 py-3 shadow flex items-center gap-3">
-          <div className="text-3xl font-black text-green-700 leading-none">Lv.{state.level ?? 1}</div>
+        <div className="rounded-2xl px-4 py-3 shadow flex items-center gap-3"
+             style={{ background: 'white', border: '2px solid #fbcfe8' }}>
+          <div className="text-3xl font-black leading-none" style={{ color: '#db2777' }}>
+            Lv.{state.level ?? 1}
+          </div>
           <div className="flex-1">
-            <div className="text-xs font-bold text-gray-500 mb-1">算数レベル</div>
-            <div className="w-full bg-green-100 rounded-full h-2.5 overflow-hidden">
+            <div className="text-xs font-bold mb-1" style={{ color: '#9ca3af' }}>算数レベル</div>
+            <div className="w-full rounded-full h-2.5 overflow-hidden" style={{ background: '#fce7f3' }}>
               <div
                 className="h-full rounded-full transition-all duration-500"
-                style={{ width: `${((state.level ?? 1) / 50) * 100}%`, background: 'linear-gradient(90deg, #4ade80, #16a34a)' }}
+                style={{
+                  width: `${((state.level ?? 1) / 50) * 100}%`,
+                  background: 'linear-gradient(90deg, #f9a8d4, #ec4899)',
+                }}
               />
             </div>
           </div>
-          <div className="text-xs text-gray-400 font-bold whitespace-nowrap">{state.level ?? 1}/50</div>
+          <div className="text-xs font-bold whitespace-nowrap" style={{ color: '#9ca3af' }}>
+            {state.level ?? 1}/50
+          </div>
         </div>
       </div>
 
-      {/* Stats row */}
+      {/* スタッツ行 */}
       <div className="flex gap-3 w-full max-w-sm mb-4">
-        <div className="flex-1 bg-white rounded-xl p-3 text-center shadow">
-          <div className="text-2xl font-black text-yellow-500">💰</div>
-          <div className="text-lg font-black">{state.coins}</div>
-          <div className="text-xs text-gray-500">コイン</div>
-        </div>
-        <div className="flex-1 bg-white rounded-xl p-3 text-center shadow">
-          <div className="text-2xl font-black">⚔️</div>
-          <div className="text-lg font-black">{state.battlePoints ?? 0}</div>
-          <div className="text-xs text-gray-500">バトルPT</div>
-        </div>
-        <div className="flex-1 bg-white rounded-xl p-3 text-center shadow">
-          <div className="text-2xl font-black">⭐</div>
-          <div className="text-lg font-black">{state.totalStars}</div>
-          <div className="text-xs text-gray-500">ほし</div>
-        </div>
-        <div className="flex-1 bg-white rounded-xl p-3 text-center shadow">
-          <div className="text-2xl font-black">🔥</div>
-          <div className="text-lg font-black">{state.bestCombo}</div>
-          <div className="text-xs text-gray-500">コンボ</div>
-        </div>
+        {[
+          { icon: '🪙', val: state.coins,      label: 'コイン' },
+          { icon: '⭐', val: state.totalStars, label: 'ほし' },
+          { icon: '🔥', val: state.bestCombo,  label: 'コンボ' },
+        ].map(({ icon, val, label }) => (
+          <div key={label} className="flex-1 rounded-xl p-3 text-center shadow"
+               style={{ background: 'white', border: '1.5px solid #fbcfe8' }}>
+            <div className="text-2xl font-black">{icon}</div>
+            <div className="text-lg font-black" style={{ color: '#9d174d' }}>{val}</div>
+            <div className="text-xs" style={{ color: '#9ca3af' }}>{label}</div>
+          </div>
+        ))}
       </div>
 
-      {/* Nav buttons */}
+      {/* ナビゲーションボタン */}
       <div className="flex flex-col gap-3 w-full max-w-sm">
         <button
           onClick={onPlay}
           className="w-full py-4 rounded-2xl text-xl font-black text-white shadow-lg active:scale-95 transition-transform"
-          style={{ background: 'linear-gradient(135deg, #4ade80, #16a34a)' }}
+          style={{ background: 'linear-gradient(135deg, #f472b6, #ec4899)', boxShadow: '0 8px 24px rgba(236,72,153,0.4)' }}
         >
           🎮 あそぶ
         </button>
@@ -100,31 +105,31 @@ export default function HomeScreen({ state, onPlay, onEncyclopedia, onGacha, onB
           <button
             onClick={onEncyclopedia}
             className="flex-1 py-3 rounded-2xl text-lg font-black text-white shadow active:scale-95 transition-transform"
-            style={{ background: 'linear-gradient(135deg, #60a5fa, #3b82f6)' }}
+            style={{ background: 'linear-gradient(135deg, #c084fc, #a855f7)' }}
           >
-            📖 ずかん
+            🩷 シールずかん
           </button>
           <button
             onClick={onGacha}
             disabled={state.coins < GACHA_COST}
             aria-disabled={state.coins < GACHA_COST}
             className="flex-1 py-3 rounded-2xl text-lg font-black text-white shadow active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ background: 'linear-gradient(135deg, #f472b6, #ec4899)' }}
+            style={{ background: 'linear-gradient(135deg, #fb7185, #f43f5e)' }}
           >
-            🎲 ガチャ
+            🎀 ガチャ
             <div className="text-xs font-normal opacity-80">{GACHA_COST}コイン</div>
             {state.coins < GACHA_COST && GACHA_COST - state.coins <= 50 && (
-              <div className="text-xs font-normal opacity-90">コイン{GACHA_COST - state.coins}たりない</div>
+              <div className="text-xs font-normal opacity-90">あと{GACHA_COST - state.coins}コイン</div>
             )}
           </button>
         </div>
         <button
-          onClick={onBattle}
+          onClick={onStickerBook}
           className="w-full py-3 rounded-2xl text-lg font-black text-white shadow active:scale-95 transition-transform"
-          style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)' }}
+          style={{ background: 'linear-gradient(135deg, #f9a8d4, #ec4899)' }}
         >
-          ⚔️ バトル
-          <div className="text-xs font-normal opacity-80">育てて戦わせよう</div>
+          📖 シールブック
+          <div className="text-xs font-normal opacity-80">シールをはって飾ろう！</div>
         </button>
       </div>
     </div>
