@@ -15,7 +15,9 @@ const PAGE_BACKGROUNDS = [
 
 export default function StickerBookPage({ pageIndex, placed, collection, onUpdate }) {
   const pageRef = useRef(null);
-  // dragging: { stickerId, fromTray, placedIndex, startX, startY, currentX, currentY }
+  const placedRef = useRef(placed);
+  placedRef.current = placed;
+  // dragging: { stickerId, fromTray, placedIndex, currentX, currentY }
   const [dragging, setDragging] = useState(null);
   const [selected, setSelected] = useState(null); // placed index
   const longPressTimer = useRef(null);
@@ -37,7 +39,7 @@ export default function StickerBookPage({ pageIndex, placed, collection, onUpdat
   function handleTrayPointerDown(e, stickerId) {
     e.preventDefault();
     const { clientX, clientY } = e;
-    setDragging({ stickerId, fromTray: true, placedIndex: -1, startX: clientX, startY: clientY, currentX: clientX, currentY: clientY });
+    setDragging({ stickerId, fromTray: true, placedIndex: -1, currentX: clientX, currentY: clientY });
   }
 
   // 配置済みシールのドラッグ開始
@@ -48,7 +50,7 @@ export default function StickerBookPage({ pageIndex, placed, collection, onUpdat
 
     // 長押しで削除
     longPressTimer.current = setTimeout(() => {
-      const newPlaced = placed.filter((_, i) => i !== placedIndex);
+      const newPlaced = placedRef.current.filter((_, i) => i !== placedIndex);
       onUpdate(newPlaced);
       setDragging(null);
       setSelected(null);
@@ -59,8 +61,6 @@ export default function StickerBookPage({ pageIndex, placed, collection, onUpdat
       stickerId: placed[placedIndex].stickerId,
       fromTray: false,
       placedIndex,
-      startX: clientX,
-      startY: clientY,
       currentX: clientX,
       currentY: clientY,
     });
@@ -142,7 +142,6 @@ export default function StickerBookPage({ pageIndex, placed, collection, onUpdat
         }}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        onPointerLeave={handlePointerUp}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
