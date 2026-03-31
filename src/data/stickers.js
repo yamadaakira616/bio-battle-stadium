@@ -3,12 +3,13 @@ export const DUPLICATE_COINS = 30;
 const B = import.meta.env.BASE_URL;
 
 export const SERIES = [
-  { id: 'normal',      label: 'ノーマル',       rate: 74 },
+  { id: 'normal',      label: 'ノーマル',       rate: 73 },
   { id: 'bonbon-drop', label: 'ボンボンドロップ', rate: 10 },
   { id: 'marshmallow', label: 'マシュマロ',       rate: 8  },
   { id: 'shaka-shaka', label: 'シャカシャカ',     rate: 5  },
   { id: 'water-seal',  label: 'ウォーター',       rate: 2  },
   { id: 'oshiri',      label: 'おしりシール',     rate: 1  },
+  { id: 'special',     label: 'スペシャル',       rate: 1  },
 ];
 
 export const STICKERS = [
@@ -31,6 +32,12 @@ export const STICKERS = [
   { id:'ws-panda-chan',  name:'パンダちゃん',   series:'water-seal', imagePath:B+'assets/water-seal/panda-chan.png' },
   { id:'ws-hiyoko-chan', name:'ひよこちゃん',   series:'water-seal', imagePath:B+'assets/water-seal/hiyoko-chan.png' },
   { id:'ws-penguin-kun', name:'ペンギンくん',   series:'water-seal', imagePath:B+'assets/water-seal/penguin-kun.png' },
+
+  // ===== ウォーターシール 追加分 (妖怪 4枚) =====
+  { id:'ws-oni-yokai',      name:'おにのこども', series:'water-seal', imagePath:B+'assets/water-seal/oni-yokai.png' },
+  { id:'ws-kappa-yokai',    name:'かわどんぐり', series:'water-seal', imagePath:B+'assets/water-seal/kappa-yokai.png' },
+  { id:'ws-karakasa-yokai', name:'かさのおばけ', series:'water-seal', imagePath:B+'assets/water-seal/karakasa-yokai.png' },
+  { id:'ws-tanuki-yokai',   name:'たぬき',       series:'water-seal', imagePath:B+'assets/water-seal/tanuki-yokai.png' },
 
   // ===== マシュマロシール (8枚) =====
   { id:'mm-cream-soda',  name:'クリームソーダちゃん', series:'marshmallow', imagePath:B+'assets/marshmallow/cream-soda-chan.png' },
@@ -59,6 +66,16 @@ export const STICKERS = [
   { id:'bd-mushroom',    name:'スペースきのこ',     series:'bonbon-drop', imagePath:B+'assets/bonbon-drop/space-mushroom.png' },
   { id:'bd-magic-book',  name:'まほうの本',         series:'bonbon-drop', imagePath:B+'assets/bonbon-drop/magic-book.png' },
   { id:'bd-ghost',       name:'ぎゃらくしーおばけ', series:'bonbon-drop', imagePath:B+'assets/bonbon-drop/galaxy-ghost.png' },
+
+  // ===== ボンボンドロップ 追加分 (妖怪コレクション 8枚) =====
+  { id:'bd-kappa-yokai',    name:'カッパ',       series:'bonbon-drop', imagePath:B+'assets/bonbon-drop/bd-kappa-yokai.png' },
+  { id:'bd-kitsune-yokai',  name:'キツネ',       series:'bonbon-drop', imagePath:B+'assets/bonbon-drop/bd-kitsune-yokai.png' },
+  { id:'bd-tanuki-yokai',   name:'タヌキ',       series:'bonbon-drop', imagePath:B+'assets/bonbon-drop/bd-tanuki-yokai.png' },
+  { id:'bd-tengu-yokai',    name:'テング',       series:'bonbon-drop', imagePath:B+'assets/bonbon-drop/bd-tengu-yokai.png' },
+  { id:'bd-oni-yokai',      name:'オニ',         series:'bonbon-drop', imagePath:B+'assets/bonbon-drop/bd-oni-yokai.png' },
+  { id:'bd-yurei-yokai',    name:'ユーレイ',     series:'bonbon-drop', imagePath:B+'assets/bonbon-drop/bd-yurei-yokai.png' },
+  { id:'bd-karakasa-yokai', name:'からかさこぞう', series:'bonbon-drop', imagePath:B+'assets/bonbon-drop/bd-karakasa-yokai.png' },
+  { id:'bd-nuppeppo-yokai', name:'ぬっぺぽ',     series:'bonbon-drop', imagePath:B+'assets/bonbon-drop/bd-nuppeppo-yokai.png' },
 
   // ===== ノーマル (32枚) =====
   { id:'nm-koala',         name:'コスミックコアラ',       series:'normal', imagePath:B+'assets/normal/kip-the-cosmic-koala.png' },
@@ -108,11 +125,45 @@ export const STICKERS = [
   { id:'nm-magical-parade',  name:'マジカルパレード',        series:'normal', imagePath:B+'assets/normal/magical-parade.png' },
   { id:'nm-garden-charm',    name:'ガーデンチャーム',        series:'normal', imagePath:B+'assets/normal/garden-charm.png' },
 
+  // ===== ノーマル 追加分2 (珍しい動物・妖怪・昆虫 各4枚) =====
+  { id:'nm-quokka',       name:'クオッカ',         series:'normal', imagePath:B+'assets/normal/nm-quokka.png' },
+  { id:'nm-mendako',      name:'メンダコ',         series:'normal', imagePath:B+'assets/normal/nm-mendako.png' },
+  { id:'nm-shoebill',     name:'ハシビロコウ',     series:'normal', imagePath:B+'assets/normal/nm-shoebill.png' },
+  { id:'nm-axolotl',      name:'アホロートル',     series:'normal', imagePath:B+'assets/normal/nm-axolotl.png' },
+  { id:'nm-kappa',        name:'カッパ',           series:'normal', imagePath:B+'assets/normal/nm-kappa.png' },
+  { id:'nm-karakasa',     name:'からかさ',         series:'normal', imagePath:B+'assets/normal/nm-karakasa.png' },
+  { id:'nm-kitsune',      name:'きつね',           series:'normal', imagePath:B+'assets/normal/nm-kitsune.png' },
+  { id:'nm-yuki-onna',    name:'ゆきおんな',       series:'normal', imagePath:B+'assets/normal/nm-yuki-onna.png' },
+  { id:'nm-stag-beetle',  name:'クワガタ',         series:'normal', imagePath:B+'assets/normal/nm-stag-beetle.png' },
+  { id:'nm-butterfly',    name:'チョウ',           series:'normal', imagePath:B+'assets/normal/nm-butterfly.png' },
+  { id:'nm-dragonfly',    name:'トンボ',           series:'normal', imagePath:B+'assets/normal/nm-dragonfly.png' },
+  { id:'nm-ladybug',      name:'てんとうむし',     series:'normal', imagePath:B+'assets/normal/nm-ladybug.png' },
+
   // ===== おしりシール (4枚) =====
   { id:'os-shiba',   name:'柴犬のお尻',       series:'oshiri', imagePath:B+'assets/oshiri/shiba-oshiri.png' },
   { id:'os-mike',    name:'三毛尻シール',     series:'oshiri', imagePath:B+'assets/oshiri/mike-oshiri.png' },
   { id:'os-usagi',   name:'うさぎのもちもち', series:'oshiri', imagePath:B+'assets/oshiri/usagi-oshiri.png' },
   { id:'os-penguin', name:'ペンギンのぽてっと',series:'oshiri', imagePath:B+'assets/oshiri/penguin-oshiri.png' },
+
+  // ===== おしりシール 追加分 (4枚) =====
+  { id:'os-axolotl',  name:'アホロートルのぷにぷに', series:'oshiri', imagePath:B+'assets/oshiri/axolotl-oshiri.png' },
+  { id:'os-pangolin', name:'センザンコウのうろこ',   series:'oshiri', imagePath:B+'assets/oshiri/pangolin-oshiri.png' },
+  { id:'os-kiwi',     name:'キウイのお尻',           series:'oshiri', imagePath:B+'assets/oshiri/kiwi-oshiri.png' },
+  { id:'os-kakapo',   name:'カカポのぷにぷに',       series:'oshiri', imagePath:B+'assets/oshiri/kakapo-oshiri.png' },
+
+  // ===== スペシャル (12枚) =====
+  { id:'sp-velvet-bunny',  name:'ベルベットうさぎ',   series:'special', imagePath:B+'assets/special/velvet-bunny.png' },
+  { id:'sp-velvet-bear',   name:'ベルベットくま',     series:'special', imagePath:B+'assets/special/velvet-bear.png' },
+  { id:'sp-velvet-cat',    name:'ベルベットねこ',     series:'special', imagePath:B+'assets/special/velvet-cat.png' },
+  { id:'sp-velvet-paw',    name:'ベルベットにくきゅう', series:'special', imagePath:B+'assets/special/velvet-paw.png' },
+  { id:'sp-royal-rabbit',  name:'ロイヤルうさぎ',     series:'special', imagePath:B+'assets/special/royal-rabbit.png' },
+  { id:'sp-heraldry-bear', name:'ヘラルドリーくま',   series:'special', imagePath:B+'assets/special/heraldry-bear.png' },
+  { id:'sp-gem-cat',       name:'ジェムキャット',     series:'special', imagePath:B+'assets/special/gem-cat.png' },
+  { id:'sp-royal-paw',     name:'ロイヤルにくきゅう', series:'special', imagePath:B+'assets/special/royal-paw.png' },
+  { id:'sp-puni-animals',  name:'プニプニどうぶつ',   series:'special', imagePath:B+'assets/special/puni-animals.png' },
+  { id:'sp-puni-food',     name:'プニプニたべもの',   series:'special', imagePath:B+'assets/special/puni-food.png' },
+  { id:'sp-puni-vehicles', name:'プニプニのりもの',   series:'special', imagePath:B+'assets/special/puni-vehicles.png' },
+  { id:'sp-puni-creatures',name:'プニプニいきもの',   series:'special', imagePath:B+'assets/special/puni-creatures.png' },
 ];
 
 export function rollGacha() {
