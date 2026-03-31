@@ -2,7 +2,7 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { STICKERS } from '../data/stickers.js';
 
-const MAX_PER_PAGE = 20;
+const MAX_PER_PAGE = 40;
 // シール帳ページの外枠カラー（ページごとに変わる）
 const PAGE_COLORS = [
   { border: '#f9a8d4', bg: '#fdf2f8', dot: '#fce7f3' }, // ピンク
@@ -213,6 +213,26 @@ export default function StickerBookPage({ pageIndex, placed, collection, onUpdat
     setSelected(null);
   }
 
+  // ─── Auto-arrange: 均等グリッド配置 ────────────────────────────────────
+  function handleAutoArrange() {
+    if (placed.length === 0) return;
+    const n = placed.length;
+    const cols = Math.ceil(Math.sqrt(n));
+    const rows = Math.ceil(n / cols);
+    const scale = Math.max(0.4, Math.min(1.2, 2.5 / cols));
+    const marginX = 0.1;
+    const marginY = 0.1;
+    const newPlaced = placed.map((item, i) => {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const x = cols === 1 ? 0.5 : marginX + (col / (cols - 1)) * (1 - 2 * marginX);
+      const y = rows === 1 ? 0.5 : marginY + (row / (rows - 1)) * (1 - 2 * marginY);
+      return { ...item, x, y, rotation: 0, scale };
+    });
+    onUpdateRef.current(newPlaced);
+    setSelected(null);
+  }
+
   const selectedItem = selected !== null ? placed[selected] : null;
   const ghostSticker = ghostPos && dragRef.current ? stickerMap[dragRef.current.stickerId] : null;
   const pickedSticker = pickedStickerId ? stickerMap[pickedStickerId] : null;
@@ -258,6 +278,19 @@ export default function StickerBookPage({ pageIndex, placed, collection, onUpdat
           </span>
           <button onClick={() => setPickedStickerId(null)}
             style={{ ...btnStyle, background: '#fef3c7', color: '#92400e', marginLeft: 'auto' }}>✕</button>
+        </div>
+      )}
+
+      {/* 自動整列ボタン */}
+      {placed.length > 0 && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', flexShrink: 0 }}>
+          <button onClick={handleAutoArrange} style={{
+            ...btnStyle,
+            background: '#ede9fe', color: '#6d28d9',
+            border: '2px solid #c4b5fd', fontSize: '0.78rem', padding: '4px 12px',
+          }}>
+            📐 じどうならべ
+          </button>
         </div>
       )}
 
