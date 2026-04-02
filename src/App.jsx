@@ -5,7 +5,9 @@ import LevelSelectScreen from './screens/LevelSelectScreen.jsx';
 import GameScreen from './screens/GameScreen.jsx';
 import GachaScreen from './screens/GachaScreen.jsx';
 import EncyclopediaScreen from './screens/EncyclopediaScreen.jsx';
-import StickerBookScreen from './screens/StickerBookScreen.jsx';
+import BattleMapScreen from './screens/BattleMapScreen.jsx';
+import TeamSelectScreen from './screens/TeamSelectScreen.jsx';
+import BattleScreen from './screens/BattleScreen.jsx';
 
 const SCREEN = {
   HOME: 'HOME',
@@ -13,13 +15,22 @@ const SCREEN = {
   GAME: 'GAME',
   GACHA: 'GACHA',
   ENCYCLOPEDIA: 'ENCYCLOPEDIA',
-  STICKER_BOOK: 'STICKER_BOOK',
+  BATTLE_MAP: 'BATTLE_MAP',
+  TEAM_SELECT: 'TEAM_SELECT',
+  BATTLE: 'BATTLE',
 };
 
 export default function App() {
   const [screen, setScreen] = useState(SCREEN.HOME);
   const [selectedLevel, setSelectedLevel] = useState(null);
-  const { state, addCoins, spendCoins, levelUp, saveStars, updateBestCombo, incLevelPlayCount, pullGacha, updateBookPage } = useGameState();
+  const [selectedNation, setSelectedNation] = useState(null);
+  const [battleTeam, setBattleTeam] = useState([]);
+
+  const {
+    state, addCoins, spendCoins, levelUp, saveStars,
+    updateBestCombo, incLevelPlayCount, pullGacha, updateBookPage,
+    updateBattleProgress, saveBattleTeam,
+  } = useGameState();
 
   if (screen === SCREEN.HOME) return (
     <HomeScreen
@@ -27,7 +38,7 @@ export default function App() {
       onPlay={() => setScreen(SCREEN.LEVEL_SELECT)}
       onEncyclopedia={() => setScreen(SCREEN.ENCYCLOPEDIA)}
       onGacha={() => setScreen(SCREEN.GACHA)}
-      onStickerBook={() => setScreen(SCREEN.STICKER_BOOK)}
+      onBattle={() => setScreen(SCREEN.BATTLE_MAP)}
     />
   );
 
@@ -67,11 +78,46 @@ export default function App() {
     />
   );
 
-  if (screen === SCREEN.STICKER_BOOK) return (
-    <StickerBookScreen
+  if (screen === SCREEN.BATTLE_MAP) return (
+    <BattleMapScreen
       state={state}
       onBack={() => setScreen(SCREEN.HOME)}
-      onUpdatePage={updateBookPage}
+      onSelectNation={nation => {
+        setSelectedNation(nation);
+        setScreen(SCREEN.TEAM_SELECT);
+      }}
+    />
+  );
+
+  if (screen === SCREEN.TEAM_SELECT) return (
+    <TeamSelectScreen
+      state={state}
+      nation={selectedNation}
+      onBack={() => setScreen(SCREEN.BATTLE_MAP)}
+      onConfirm={teamIds => {
+        saveBattleTeam(teamIds);
+        setBattleTeam(teamIds);
+        setScreen(SCREEN.BATTLE);
+      }}
+    />
+  );
+
+  if (screen === SCREEN.BATTLE) return (
+    <BattleScreen
+      state={state}
+      nation={selectedNation}
+      teamCardIds={battleTeam}
+      onBack={() => setScreen(SCREEN.BATTLE_MAP)}
+      onVictory={(nationId, teamIds, reward) => {
+        addCoins(reward);
+        updateBattleProgress(nationId, teamIds);
+        setScreen(SCREEN.BATTLE_MAP);
+      }}
+      onDefeat={action => {
+        if (action === 'retry') setScreen(SCREEN.BATTLE);
+        else if (action === 'changeTeam') setScreen(SCREEN.TEAM_SELECT);
+        else setScreen(SCREEN.BATTLE_MAP);
+      }}
     />
   );
 

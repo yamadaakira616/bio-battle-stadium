@@ -13,6 +13,10 @@ const DEFAULT_STATE = {
   totalPlayed: 0,
   levelPlayCount: {},
   bookPages: [[], [], [], [], []],
+  battleProgress: {
+    conquered: [],
+    teamIds: [],
+  },
 };
 
 export function getLevelCoinMultiplier(playCount) {
@@ -116,6 +120,28 @@ export function useGameState() {
     });
   }
 
+  function updateBattleProgress(nationId, teamIds) {
+    setState(s => ({
+      ...s,
+      battleProgress: {
+        conquered: (s.battleProgress?.conquered || []).includes(nationId)
+          ? (s.battleProgress?.conquered || [])
+          : [...(s.battleProgress?.conquered || []), nationId],
+        teamIds,
+      },
+    }));
+  }
+
+  function saveBattleTeam(teamIds) {
+    setState(s => ({
+      ...s,
+      battleProgress: {
+        ...(s.battleProgress || { conquered: [] }),
+        teamIds,
+      },
+    }));
+  }
+
   return {
     state,
     addCoins,
@@ -126,5 +152,7 @@ export function useGameState() {
     incLevelPlayCount,
     pullGacha,
     updateBookPage,
+    updateBattleProgress,
+    saveBattleTeam,
   };
 }

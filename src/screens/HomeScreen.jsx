@@ -24,7 +24,7 @@ const SHOWCASE = [
   { id: 'nm-kappa',        x: '76%', y: '72%', size: 56, rotate:   4, delay: '1.4s' },
 ];
 
-export default function HomeScreen({ state, onPlay, onEncyclopedia, onGacha, onStickerBook }) {
+export default function HomeScreen({ state, onPlay, onEncyclopedia, onGacha, onBattle }) {
   const owned = state.collection.length;
   const total = STICKERS.length;
   const pct = Math.round((owned / total) * 100);
@@ -41,8 +41,8 @@ export default function HomeScreen({ state, onPlay, onEncyclopedia, onGacha, onS
       style={{ background: 'linear-gradient(180deg, #fce7f3 0%, #fdf2f8 50%, #f5f0ff 100%)' }}
     >
       {/* タイトル */}
-      <h1 className="text-3xl font-black tracking-tight" style={{ color: '#831843' }}>
-        🩷 かわいいシールずかん
+      <h1 className="text-3xl font-black tracking-tight" style={{ color: '#1e3a5f' }}>
+        ⚔️ Bio Battle Stadium
       </h1>
 
       {/* シールショーケース */}
@@ -171,12 +171,12 @@ export default function HomeScreen({ state, onPlay, onEncyclopedia, onGacha, onS
           </button>
         </div>
         <button
-          onClick={onStickerBook}
+          onClick={onBattle}
           className="w-full py-3 rounded-2xl text-lg font-black text-white shadow active:scale-95 transition-transform"
-          style={{ background: 'linear-gradient(135deg, #f9a8d4, #ec4899)' }}
+          style={{ background: 'linear-gradient(135deg, #1e3a5f, #1e40af)', boxShadow: '0 8px 24px rgba(30,64,175,0.5)' }}
         >
-          📖 シールブック
-          <div className="text-xs font-normal opacity-80">シールをはって飾ろう！</div>
+          ⚔️ バトル
+          <div className="text-xs font-normal opacity-80">国を征服しよう！</div>
         </button>
       </div>
     </div>
