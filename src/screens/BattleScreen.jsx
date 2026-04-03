@@ -640,7 +640,11 @@ export default function BattleScreen({ state, nation, teamCardIds, cardLevels = 
   }
 
   // ===== VICTORY / DEFEAT OVERLAYS =====
+  const SERIES_COLORS_V = { bio:'#22c55e', arms:'#f59e0b', armbio:'#ef4444', corps:'#a855f7', catsle:'#fbbf24' };
+
   const VictoryScreen = () => {
+    const [picked, setPicked] = useState(null);
+    const [confirmed, setConfirmed] = useState(false);
     const [confetti] = useState(() =>
       Array.from({ length: 30 }, (_, i) => ({
         id: i,
@@ -650,69 +654,131 @@ export default function BattleScreen({ state, nation, teamCardIds, cardLevels = 
         size: 6 + Math.random() * 8,
       }))
     );
+    const owned = new Set(state.collection || []);
 
     return (
       <div style={{
         position: 'fixed', inset: 0, zIndex: 50,
-        background: 'rgba(0,0,0,0.85)',
+        background: 'rgba(0,0,0,0.92)',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        overflow: 'hidden',
+        overflow: 'hidden', padding: '0 16px',
       }}>
-        {/* Confetti */}
         {confetti.map(c => (
           <div key={c.id} style={{
-            position: 'absolute',
-            left: c.left,
-            top: -20,
-            width: c.size,
-            height: c.size,
-            background: c.color,
-            borderRadius: 2,
+            position: 'absolute', left: c.left, top: -20,
+            width: c.size, height: c.size, background: c.color, borderRadius: 2,
             animation: `confettiFall ${1.5 + Math.random()}s ease-in ${c.delay} forwards`,
           }} />
         ))}
 
-        <div style={{
-          textAlign: 'center',
-          animation: 'victoryPop 0.6s cubic-bezier(0.175,0.885,0.32,1.275)',
-        }}>
-          <div style={{ fontSize: 64, marginBottom: 8 }}>🎉</div>
-          <div style={{
-            fontSize: 48, fontWeight: 900, color: '#fbbf24',
-            textShadow: '0 0 30px rgba(251,191,36,0.8)',
-            marginBottom: 8,
-          }}>
+        <div style={{ textAlign: 'center', animation: 'victoryPop 0.6s cubic-bezier(0.175,0.885,0.32,1.275)', width: '100%', maxWidth: 400 }}>
+          <div style={{ fontSize: 48, marginBottom: 4 }}>🎉</div>
+          <div style={{ fontSize: 36, fontWeight: 900, color: '#fbbf24', textShadow: '0 0 30px rgba(251,191,36,0.8)', marginBottom: 4 }}>
             VICTORY!
           </div>
-          <div style={{ color: '#e2e8f0', fontSize: 18, marginBottom: 8 }}>
+          <div style={{ color: '#e2e8f0', fontSize: 16, marginBottom: 4 }}>
             {nation.emoji} {nation.name} を制覇！
           </div>
-          <div style={{
-            fontSize: 28, fontWeight: 900, color: '#fbbf24',
-            animation: 'victoryPop 0.5s 0.3s cubic-bezier(0.175,0.885,0.32,1.275) both',
-            marginBottom: 24,
-          }}>
+          <div style={{ fontSize: 22, fontWeight: 900, color: '#fbbf24', marginBottom: 20 }}>
             🪙 +{nation.reward}
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 240 }}>
-            <button
-              onClick={() => onVictory(nation.id, teamCardIds, nation.reward)}
-              style={{
-                padding: '14px 24px',
-                borderRadius: 16,
-                background: 'linear-gradient(135deg, #fbbf24, #d97706)',
-                color: '#000',
-                fontWeight: 900,
-                fontSize: 18,
-                border: 'none',
-                cursor: 'pointer',
-                boxShadow: '0 8px 24px rgba(251,191,36,0.4)',
-              }}
-            >
-              🗺️ マップへ戻る
-            </button>
-          </div>
+          {/* カード選択 */}
+          {!confirmed ? (
+            <>
+              <div style={{ color: '#94a3b8', fontSize: 13, fontWeight: 700, marginBottom: 12 }}>
+                ⚔️ 敵カードを1枚ゲット！
+              </div>
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
+                {nation.team.map(card => {
+                  const isOwned = owned.has(card.id);
+                  const isSelected = picked?.id === card.id;
+                  const color = SERIES_COLORS_V[card.series] || '#64748b';
+                  return (
+                    <button
+                      key={card.id}
+                      onClick={() => setPicked(card)}
+                      style={{
+                        width: 72, padding: '8px 4px',
+                        borderRadius: 12,
+                        background: isSelected ? `${color}33` : 'rgba(255,255,255,0.07)',
+                        border: isSelected ? `2px solid ${color}` : '2px solid rgba(255,255,255,0.15)',
+                        boxShadow: isSelected ? `0 0 16px ${color}66` : 'none',
+                        cursor: 'pointer',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                        transition: 'all 0.15s',
+                        position: 'relative',
+                      }}
+                    >
+                      {isOwned && (
+                        <div style={{
+                          position: 'absolute', top: -6, right: -6,
+                          background: '#22c55e', borderRadius: '50%',
+                          width: 18, height: 18, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontWeight: 900, color: '#fff',
+                        }}>✓</div>
+                      )}
+                      <img src={card.imagePath} alt={card.name} style={{ width: 52, height: 52, objectFit: 'contain' }} />
+                      <div style={{ fontSize: 9, color: isSelected ? color : '#94a3b8', fontWeight: 700, lineHeight: 1.2, textAlign: 'center' }}>
+                        {card.name.length > 12 ? card.name.slice(0, 12) + '…' : card.name}
+                      </div>
+                      <div style={{ fontSize: 8, color: color, fontWeight: 700 }}>
+                        {card.series}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={() => { if (picked) setConfirmed(true); }}
+                disabled={!picked}
+                style={{
+                  padding: '12px 28px', borderRadius: 14, border: 'none', cursor: picked ? 'pointer' : 'not-allowed',
+                  background: picked ? 'linear-gradient(135deg, #22c55e, #16a34a)' : 'rgba(255,255,255,0.1)',
+                  color: '#fff', fontWeight: 900, fontSize: 16,
+                  boxShadow: picked ? '0 4px 16px rgba(34,197,94,0.4)' : 'none',
+                  opacity: picked ? 1 : 0.5,
+                  marginBottom: 8,
+                }}
+              >
+                {picked ? `✅ ${picked.name.slice(0,14)} をゲット！` : 'カードを選んでください'}
+              </button>
+            </>
+          ) : (
+            <>
+              {/* 確定後の表示 */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 8 }}>ゲットしたカード</div>
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                  <div style={{
+                    width: 90, padding: '12px 8px', borderRadius: 16,
+                    background: `${SERIES_COLORS_V[picked.series] || '#64748b'}22`,
+                    border: `2px solid ${SERIES_COLORS_V[picked.series] || '#64748b'}`,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                    animation: 'victoryPop 0.5s cubic-bezier(0.175,0.885,0.32,1.275)',
+                  }}>
+                    <img src={picked.imagePath} alt={picked.name} style={{ width: 70, height: 70, objectFit: 'contain' }} />
+                    <div style={{ fontSize: 10, color: '#e2e8f0', fontWeight: 700, textAlign: 'center' }}>{picked.name}</div>
+                  </div>
+                </div>
+                {owned.has(picked.id) && (
+                  <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 8 }}>※ すでに所持済み（重複）</div>
+                )}
+              </div>
+              <button
+                onClick={() => onVictory(nation.id, teamCardIds, nation.reward, picked.id)}
+                style={{
+                  padding: '14px 28px', borderRadius: 16, border: 'none', cursor: 'pointer',
+                  background: 'linear-gradient(135deg, #fbbf24, #d97706)',
+                  color: '#000', fontWeight: 900, fontSize: 18,
+                  boxShadow: '0 8px 24px rgba(251,191,36,0.4)',
+                }}
+              >
+                🗺️ マップへ戻る
+              </button>
+            </>
+          )}
         </div>
       </div>
     );

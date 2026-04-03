@@ -29,7 +29,7 @@ export default function App() {
   const {
     state, addCoins, spendCoins, levelUp, saveStars,
     updateBestCombo, incLevelPlayCount, pullGacha, updateBookPage,
-    updateBattleProgress, saveBattleTeam, upgradeCard,
+    updateBattleProgress, saveBattleTeam, upgradeCard, addCardToCollection,
   } = useGameState();
 
   if (screen === SCREEN.HOME) return (
@@ -110,9 +110,10 @@ export default function App() {
       teamCardIds={battleTeam}
       cardLevels={state.cardLevels || {}}
       onBack={() => setScreen(SCREEN.BATTLE_MAP)}
-      onVictory={(nationId, teamIds, reward) => {
+      onVictory={(nationId, teamIds, reward, rewardCardId) => {
         addCoins(reward);
         updateBattleProgress(nationId, teamIds);
+        if (rewardCardId) addCardToCollection(rewardCardId);
         setScreen(SCREEN.BATTLE_MAP);
       }}
       onDefeat={action => {

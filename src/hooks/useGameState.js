@@ -134,6 +134,13 @@ export function useGameState() {
     }));
   }
 
+  function addCardToCollection(cardId) {
+    setState(s => {
+      if (s.collection.includes(cardId)) return s;
+      return { ...s, collection: [...s.collection, cardId] };
+    });
+  }
+
   function upgradeCard(cardId, series) {
     setState(s => {
       const currentLv = (s.cardLevels?.[cardId] || 1);
@@ -171,5 +178,6 @@ export function useGameState() {
     updateBattleProgress,
     saveBattleTeam,
     upgradeCard,
+    addCardToCollection,
   };
 }
