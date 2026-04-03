@@ -30,9 +30,21 @@ const SP_DMG_MULT = {
 
 function lerp(a, b, t) { return Math.round(a + (b - a) * t); }
 
-// レベルアップコスト（Lv.1→2 が index 0）
-export const LEVEL_UP_COSTS = [50, 80, 120, 170, 230, 300, 380, 470, 570];
+// シリーズ別レベルアップコスト（Lv.1→2 が index 0、Lv.9→10 が index 8）
+export const LEVEL_UP_COSTS = {
+  bio:    [ 30,  50,  70, 100, 140, 180, 230, 280, 340], // 計 1420コイン
+  arms:   [ 50,  80, 120, 170, 230, 300, 380, 470, 570], // 計 2370コイン
+  armbio: [ 80, 130, 190, 270, 370, 480, 610, 750, 910], // 計 3790コイン
+  corps:  [130, 200, 300, 430, 580, 750, 950,1180,1430], // 計 5950コイン
+  catsle: [200, 320, 480, 680, 920,1200,1520,1880,2280], // 計 9480コイン
+};
 export const MAX_CARD_LEVEL = 10;
+
+export function getLevelUpCost(series, currentLevel) {
+  const costs = LEVEL_UP_COSTS[series] || LEVEL_UP_COSTS.arms;
+  if (currentLevel >= MAX_CARD_LEVEL) return null;
+  return costs[currentLevel - 1] ?? null;
+}
 
 // Lv.1 を基準に各レベルのステータス倍率を計算
 function levelMult(level) {

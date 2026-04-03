@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { DUPLICATE_COINS } from '../data/stickers.js';
 import { GACHA_COST } from '../utils/gameLogic.js';
-import { LEVEL_UP_COSTS, MAX_CARD_LEVEL } from '../utils/battleEngine.js';
+import { getLevelUpCost, MAX_CARD_LEVEL } from '../utils/battleEngine.js';
 
 const KEY = 'sticker-book-v1';
 const DEFAULT_STATE = {
@@ -134,12 +134,12 @@ export function useGameState() {
     }));
   }
 
-  function upgradeCard(cardId) {
+  function upgradeCard(cardId, series) {
     setState(s => {
       const currentLv = (s.cardLevels?.[cardId] || 1);
       if (currentLv >= MAX_CARD_LEVEL) return s;
-      const cost = LEVEL_UP_COSTS[currentLv - 1];
-      if (s.coins < cost) return s;
+      const cost = getLevelUpCost(series, currentLv);
+      if (cost === null || s.coins < cost) return s;
       return {
         ...s,
         coins: s.coins - cost,

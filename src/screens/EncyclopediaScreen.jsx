@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { STICKERS, SERIES } from '../data/stickers.js';
-import { getCardStats, LEVEL_UP_COSTS, MAX_CARD_LEVEL } from '../utils/battleEngine.js';
+import { getCardStats, getLevelUpCost, MAX_CARD_LEVEL } from '../utils/battleEngine.js';
 
 const SERIES_COLORS = {
   'bio':    '#22c55e',
@@ -150,7 +150,7 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
             {(() => {
               const cardLv = state.cardLevels?.[detail.id] || 1;
               const isMax = cardLv >= MAX_CARD_LEVEL;
-              const cost = !isMax ? LEVEL_UP_COSTS[cardLv - 1] : 0;
+              const cost = getLevelUpCost(detail.series, cardLv) ?? 0;
               const canAfford = state.coins >= cost;
               const stats = getCardStats(detail, 1.0, cardLv);
               const nextStats = !isMax ? getCardStats(detail, 1.0, cardLv + 1) : null;
@@ -194,7 +194,7 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
                     </div>
                   ) : (
                     <button
-                      onClick={() => { onUpgradeCard(detail.id); }}
+                      onClick={() => { onUpgradeCard(detail.id, detail.series); }}
                       disabled={!canAfford}
                       className="w-full py-3 rounded-xl font-black text-white transition-all active:scale-95 disabled:opacity-40"
                       style={{
