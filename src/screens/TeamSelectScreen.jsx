@@ -17,6 +17,15 @@ const SERIES_COLORS = {
   corps: '#a855f7',
   catsle: '#fbbf24',
 };
+// シリーズごとの最弱スターターカード（未所持時のフォールバック）
+const STARTERS = {
+  bio:    'bio-migratory-locust',
+  arms:   'arm-medieval-crossbow',
+  armbio: 'ab-mantis-with-emp',
+  corps:  'cor-honeybee-mosquito-squadron',
+  catsle: 'cas-white-lion-king',
+};
+
 const stickerMap = Object.fromEntries(STICKERS.map(s => [s.id, s]));
 
 export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
@@ -28,7 +37,8 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
       const owned = STICKERS.filter(s => s.series === series && state.collection.includes(s.id));
       const lastCard = lastTeam[idx] ? stickerMap[lastTeam[idx]] : null;
       const validLast = lastCard && owned.find(c => c.id === lastCard.id);
-      sel[series] = validLast ? lastCard.id : (owned[0]?.id || null);
+      // 所持カードがあればそこから、なければスターター
+      sel[series] = validLast ? lastCard.id : (owned[0]?.id || STARTERS[series]);
     });
     return sel;
   }
@@ -44,7 +54,7 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
     onConfirm(teamIds);
   }
 
-  const allSelected = SERIES_ORDER.every(s => selections[s]);
+  const missingCount = SERIES_ORDER.filter(s => !state.collection.some(id => STICKERS.find(c => c.id === id && c.series === s))).length;
 
   return (
     <div
@@ -65,12 +75,11 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
         </div>
         <button
           onClick={handleConfirm}
-          disabled={!allSelected}
-          className="px-4 py-2 rounded-xl font-black text-sm transition-all active:scale-95 disabled:opacity-40"
+          className="px-4 py-2 rounded-xl font-black text-sm transition-all active:scale-95"
           style={{
-            background: allSelected ? 'linear-gradient(135deg, #3b82f6, #1d4ed8)' : 'rgba(255,255,255,0.1)',
+            background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
             color: '#fff',
-            boxShadow: allSelected ? '0 4px 16px rgba(59,130,246,0.4)' : 'none',
+            boxShadow: '0 4px 16px rgba(59,130,246,0.4)',
           }}
         >
           ⚔️ 出陣！
@@ -151,20 +160,19 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
                 </div>
               </div>
 
-              {/* Card scroll or empty state */}
-              {!hasCards ? (
-                <div className="flex flex-col items-center justify-center py-6 gap-2">
-                  <div className="text-3xl opacity-30">🎰</div>
-                  <div className="text-sm font-bold" style={{ color: '#64748b' }}>
-                    このシリーズのカードがありません
-                  </div>
-                  <div className="text-xs" style={{ color: '#475569' }}>
-                    ガチャで{SERIES_LABELS[series]}カードをゲットしよう！
+              {/* Card scroll */}
+              {!hasCards && (
+                <div className="px-4 pt-2 pb-1">
+                  <div className="text-xs px-2 py-1 rounded-lg inline-block" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171' }}>
+                    ⚠️ 未所持 — スターターカードで参戦（かなり弱い）
                   </div>
                 </div>
-              ) : (
+              )}
+              {(() => {
+              const pool = hasCards ? owned : [stickerMap[STARTERS[series]]].filter(Boolean);
+              return (
               <div className="flex gap-2 p-3 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-                {owned.map(card => {
+                {pool.map(card => {
                   const isSelected = card.id === selectedId;
                   return (
                     <button
@@ -194,7 +202,8 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
                   );
                 })}
               </div>
-              )}
+              );
+              })()}
 
               {/* Selected card stats */}
               {selectedStats && (
@@ -223,18 +232,14 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
 
       {/* Bottom CTA */}
       <div className="px-4 pb-6 pt-2" style={{ background: 'rgba(10,15,30,0.95)' }}>
-        {!allSelected && (
-          <div className="text-center text-xs mb-2" style={{ color: '#ef4444' }}>
-            ⚠️ {SERIES_ORDER
-              .filter(s => !selections[s])
-              .map(s => SERIES_LABELS[s])
-              .join('・')}のカードがありません。ガチャで入手しよう！
+        {missingCount > 0 && (
+          <div className="text-center text-xs mb-2" style={{ color: '#f87171' }}>
+            ⚠️ {missingCount}シリーズ未所持 — スターターカードで参戦（弱め）
           </div>
         )}
         <button
           onClick={handleConfirm}
-          disabled={!allSelected}
-          className="w-full py-4 rounded-2xl text-xl font-black text-white transition-all active:scale-95 disabled:opacity-40"
+          className="w-full py-4 rounded-2xl text-xl font-black text-white transition-all active:scale-95"
           style={{
             background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
             boxShadow: '0 8px 24px rgba(59,130,246,0.35)',
