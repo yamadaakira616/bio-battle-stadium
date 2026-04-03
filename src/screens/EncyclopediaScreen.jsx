@@ -2,15 +2,15 @@ import { useState, useEffect, useRef } from 'react';
 import { STICKERS, SERIES } from '../data/stickers.js';
 
 const SERIES_COLORS = {
-  'normal':      '#ec4899',
-  'bonbon-drop': '#a855f7',
-  'marshmallow': '#f59e0b',
-  'shaka-shaka': '#6366f1',
-  'water-seal':  '#0ea5e9',
+  'bio':    '#22c55e',
+  'arms':   '#f59e0b',
+  'armbio': '#ef4444',
+  'corps':  '#a855f7',
+  'catsle': '#fbbf24',
 };
 
 export default function EncyclopediaScreen({ state, onBack }) {
-  const [tab, setTab] = useState('normal');
+  const [tab, setTab] = useState('bio');
   const [detail, setDetail] = useState(null);
   const closeButtonRef = useRef(null);
 
@@ -23,21 +23,21 @@ export default function EncyclopediaScreen({ state, onBack }) {
 
   return (
     <div className="min-h-screen flex flex-col"
-         style={{ background: 'linear-gradient(180deg, #fce7f3 0%, #fdf2f8 100%)' }}>
+         style={{ background: '#0a0f1e', color: '#fff' }}>
 
       {/* Header */}
       <div className="flex items-center gap-3 p-4 text-white"
-           style={{ background: 'linear-gradient(135deg, #f472b6, #ec4899)' }}>
+           style={{ background: 'linear-gradient(135deg, #1e3a5f, #1d4ed8)' }}>
         <button onClick={onBack} aria-label="もどる" className="text-2xl">←</button>
-        <h2 className="text-xl font-black">🩷 シールずかん</h2>
+        <h2 className="text-xl font-black">📖 カード図鑑</h2>
         <span className="ml-auto text-sm">
-          {state.collection.length}/{STICKERS.length}まい
+          {state.collection.length}/{STICKERS.length}枚
         </span>
         <span className="font-bold text-sm">🪙 {state.coins}</span>
       </div>
 
       {/* Tabs */}
-      <div className="flex overflow-x-auto border-b-2 bg-white" style={{ borderColor: '#fbcfe8' }}>
+      <div className="flex overflow-x-auto border-b" style={{ borderColor: 'rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)' }}>
         {SERIES.map(s => {
           const color = SERIES_COLORS[s.id];
           const ownedCount = STICKERS.filter(st => st.series === s.id && owned(st.id)).length;
@@ -48,9 +48,9 @@ export default function EncyclopediaScreen({ state, onBack }) {
               onClick={() => setTab(s.id)}
               className="flex-shrink-0 px-3 py-3 text-xs font-bold transition-colors"
               style={{
-                color: tab === s.id ? color : '#9ca3af',
+                color: tab === s.id ? color : '#64748b',
                 borderBottom: tab === s.id ? `3px solid ${color}` : '3px solid transparent',
-                background: tab === s.id ? `${color}15` : 'transparent',
+                background: tab === s.id ? `${color}18` : 'transparent',
               }}
             >
               {s.label}
@@ -65,9 +65,10 @@ export default function EncyclopediaScreen({ state, onBack }) {
         <div className="grid grid-cols-3 gap-3">
           {stickers.map(sticker => {
             const isOwned = owned(sticker.id);
+            const seriesColor = SERIES_COLORS[sticker.series] || '#64748b';
             const cardStyle = {
-              background: isOwned ? 'white' : '#f3f4f6',
-              border: '2px solid #fbcfe8',
+              background: isOwned ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.03)',
+              border: isOwned ? `2px solid ${seriesColor}55` : '2px solid rgba(255,255,255,0.08)',
               aspectRatio: '1',
             };
             const cardContent = isOwned ? (
@@ -78,14 +79,14 @@ export default function EncyclopediaScreen({ state, onBack }) {
                   style={{ flex: 1, width: '100%', objectFit: 'contain' }}
                 />
                 <div className="text-xs font-bold text-center mt-1 leading-tight"
-                     style={{ color: '#9d174d', fontSize: '0.6rem' }}>
+                     style={{ color: '#cbd5e1', fontSize: '0.6rem' }}>
                   {sticker.name}
                 </div>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center h-full gap-1">
-                <div className="text-3xl" style={{ filter: 'grayscale(1) opacity(0.3)' }}>🩷</div>
-                <div className="text-xs font-bold" style={{ color: '#d1d5db' }}>？？？</div>
+                <div className="text-3xl opacity-20">⚔️</div>
+                <div className="text-xs font-bold" style={{ color: '#334155' }}>？？？</div>
               </div>
             );
             return isOwned ? (
@@ -123,18 +124,18 @@ export default function EncyclopediaScreen({ state, onBack }) {
         >
           <div
             className="w-full max-w-sm rounded-t-3xl p-5 pb-8"
-            style={{ background: 'white' }}
+            style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)' }}
             onClick={e => e.stopPropagation()}
           >
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="text-xl font-black" style={{ color: '#831843' }}>{detail.name}</h3>
+                <h3 className="text-xl font-black text-white">{detail.name}</h3>
                 <div className="text-xs mt-1 px-2 py-0.5 rounded-full inline-block"
-                     style={{ background: `${SERIES_COLORS[detail.series]}20`, color: SERIES_COLORS[detail.series] }}>
+                     style={{ background: `${SERIES_COLORS[detail.series]}25`, color: SERIES_COLORS[detail.series] }}>
                   {SERIES.find(s => s.id === detail.series)?.label}
                 </div>
               </div>
-              <button ref={closeButtonRef} onClick={() => setDetail(null)} aria-label="とじる" className="text-2xl opacity-70">✕</button>
+              <button ref={closeButtonRef} onClick={() => setDetail(null)} aria-label="とじる" className="text-2xl opacity-50 text-white">✕</button>
             </div>
             <div className="flex justify-center mb-4">
               <img
