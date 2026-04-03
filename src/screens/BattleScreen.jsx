@@ -655,6 +655,9 @@ export default function BattleScreen({ state, nation, teamCardIds, cardLevels = 
       }))
     );
     const owned = new Set(state.collection || []);
+    const isFirstClear = !(state.battleProgress?.conquered || []).includes(nation.id);
+    const allowedSeries = new Set(nation.rewardSeries || ['bio', 'arms', 'armbio', 'corps', 'catsle']);
+    const rewardableCards = nation.team.filter(c => allowedSeries.has(c.series));
 
     return (
       <div style={{
@@ -683,14 +686,26 @@ export default function BattleScreen({ state, nation, teamCardIds, cardLevels = 
             🪙 +{nation.reward}
           </div>
 
-          {/* カード選択 */}
-          {!confirmed ? (
+          {/* カード選択（初回クリア時のみ） */}
+          {!isFirstClear ? (
+            <button
+              onClick={() => onVictory(nation.id, teamCardIds, nation.reward, null)}
+              style={{
+                padding: '14px 28px', borderRadius: 16, border: 'none', cursor: 'pointer',
+                background: 'linear-gradient(135deg, #fbbf24, #d97706)',
+                color: '#000', fontWeight: 900, fontSize: 18,
+                boxShadow: '0 8px 24px rgba(251,191,36,0.4)',
+              }}
+            >
+              🗺️ マップへ戻る
+            </button>
+          ) : !confirmed ? (
             <>
               <div style={{ color: '#94a3b8', fontSize: 13, fontWeight: 700, marginBottom: 12 }}>
                 ⚔️ 敵カードを1枚ゲット！
               </div>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
-                {nation.team.map(card => {
+                {rewardableCards.map(card => {
                   const isOwned = owned.has(card.id);
                   const isSelected = picked?.id === card.id;
                   const color = SERIES_COLORS_V[card.series] || '#64748b';
