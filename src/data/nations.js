@@ -7,7 +7,7 @@ export const NATIONS = [
   {
     id: 'grassland', name: '草原国', nameEn: 'Grassland Kingdom',
     emoji: '🌿', color: '#22c55e', bgGrad: 'linear-gradient(160deg,#052e16,#14532d)',
-    difficulty: 1, scaleMult: 0.70, reward: 60,
+    difficulty: 1, scaleMult: 0.80, reward: 60,
     team: [
       card('bio-migratory-locust'),
       card('arm-japanese-yumi-bow'),
@@ -19,7 +19,7 @@ export const NATIONS = [
   {
     id: 'desert', name: '砂漠国', nameEn: 'Desert Kingdom',
     emoji: '🏜️', color: '#f59e0b', bgGrad: 'linear-gradient(160deg,#451a03,#78350f)',
-    difficulty: 2, scaleMult: 0.85, reward: 90,
+    difficulty: 2, scaleMult: 0.90, reward: 90,
     team: [
       card('bio-african-elephant'),
       card('arm-cavalry-saber'),

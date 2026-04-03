@@ -80,8 +80,13 @@ export default function BattleScreen({ state, nation, teamCardIds, cardLevels = 
   useEffect(() => {
     const playerCards = teamCardIds.map(id => stickerMap[id]).filter(Boolean);
     const enemyCards = nation.team;
+    const owned = new Set(state.collection || []);
 
-    const playerTeam = playerCards.map((card, i) => buildUnit(card, 1.0, 'player', i, cardLevels[card.id] || 1));
+    // 未所持のスターターカードは0.5倍の弱体化ペナルティ
+    const playerTeam = playerCards.map((card, i) => {
+      const isStarter = !owned.has(card.id);
+      return buildUnit(card, isStarter ? 0.5 : 1.0, 'player', i, isStarter ? 1 : (cardLevels[card.id] || 1));
+    });
     const enemyTeam = enemyCards.map((card, i) => buildUnit(card, nation.scaleMult, 'enemy', i, 1));
 
     gameRef.current = {
