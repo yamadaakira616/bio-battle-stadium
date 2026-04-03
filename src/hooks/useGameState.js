@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { DUPLICATE_COINS } from '../data/stickers.js';
 import { GACHA_COST } from '../utils/gameLogic.js';
+import { LEVEL_UP_COSTS, MAX_CARD_LEVEL } from '../utils/battleEngine.js';
 
 const KEY = 'sticker-book-v1';
 const DEFAULT_STATE = {
@@ -17,6 +18,7 @@ const DEFAULT_STATE = {
     conquered: [],
     teamIds: [],
   },
+  cardLevels: {},
 };
 
 export function getLevelCoinMultiplier(playCount) {
@@ -132,6 +134,20 @@ export function useGameState() {
     }));
   }
 
+  function upgradeCard(cardId) {
+    setState(s => {
+      const currentLv = (s.cardLevels?.[cardId] || 1);
+      if (currentLv >= MAX_CARD_LEVEL) return s;
+      const cost = LEVEL_UP_COSTS[currentLv - 1];
+      if (s.coins < cost) return s;
+      return {
+        ...s,
+        coins: s.coins - cost,
+        cardLevels: { ...(s.cardLevels || {}), [cardId]: currentLv + 1 },
+      };
+    });
+  }
+
   function saveBattleTeam(teamIds) {
     setState(s => ({
       ...s,
@@ -154,5 +170,6 @@ export function useGameState() {
     updateBookPage,
     updateBattleProgress,
     saveBattleTeam,
+    upgradeCard,
   };
 }

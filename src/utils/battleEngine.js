@@ -30,18 +30,34 @@ const SP_DMG_MULT = {
 
 function lerp(a, b, t) { return Math.round(a + (b - a) * t); }
 
-export function getCardStats(card, scaleMult = 1) {
+// レベルアップコスト（Lv.1→2 が index 0）
+export const LEVEL_UP_COSTS = [50, 80, 120, 170, 230, 300, 380, 470, 570];
+export const MAX_CARD_LEVEL = 10;
+
+// Lv.1 を基準に各レベルのステータス倍率を計算
+function levelMult(level) {
+  const lv = Math.max(1, Math.min(level || 1, MAX_CARD_LEVEL));
+  return {
+    hp:  1 + (lv - 1) * 0.08,
+    atk: 1 + (lv - 1) * 0.07,
+    def: 1 + (lv - 1) * 0.07,
+    spd: 1 + (lv - 1) * 0.04,
+  };
+}
+
+export function getCardStats(card, scaleMult = 1, cardLevel = 1) {
   const series = card.series || 'bio';
   const ranges = SERIES_STATS[series] || SERIES_STATS.bio;
   const t0 = seedFloat(card.id, 0);
   const t1 = seedFloat(card.id, 1);
   const t2 = seedFloat(card.id, 2);
   const t3 = seedFloat(card.id, 3);
+  const lm = levelMult(cardLevel);
 
-  const maxHp  = Math.round(lerp(ranges.hp[0],  ranges.hp[1],  t0) * scaleMult);
-  const atk    = Math.round(lerp(ranges.atk[0], ranges.atk[1], t1) * scaleMult);
-  const def    = Math.round(lerp(ranges.def[0], ranges.def[1], t2) * scaleMult);
-  const spd    = Math.round(lerp(ranges.spd[0], ranges.spd[1], t3) * scaleMult);
+  const maxHp  = Math.round(lerp(ranges.hp[0],  ranges.hp[1],  t0) * scaleMult * lm.hp);
+  const atk    = Math.round(lerp(ranges.atk[0], ranges.atk[1], t1) * scaleMult * lm.atk);
+  const def    = Math.round(lerp(ranges.def[0], ranges.def[1], t2) * scaleMult * lm.def);
+  const spd    = Math.round(lerp(ranges.spd[0], ranges.spd[1], t3) * scaleMult * lm.spd);
   const spDmg  = Math.round(atk * (SP_DMG_MULT[series] || 1.5));
 
   return {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { STICKERS, SERIES } from '../data/stickers.js';
+import { getCardStats, LEVEL_UP_COSTS, MAX_CARD_LEVEL } from '../utils/battleEngine.js';
 
 const SERIES_COLORS = {
   'bio':    '#22c55e',
@@ -9,7 +10,7 @@ const SERIES_COLORS = {
   'catsle': '#fbbf24',
 };
 
-export default function EncyclopediaScreen({ state, onBack }) {
+export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
   const [tab, setTab] = useState('bio');
   const [detail, setDetail] = useState(null);
   const closeButtonRef = useRef(null);
@@ -141,9 +142,74 @@ export default function EncyclopediaScreen({ state, onBack }) {
               <img
                 src={detail.imagePath}
                 alt={detail.name}
-                style={{ width: 160, height: 160, objectFit: 'contain' }}
+                style={{ width: 140, height: 140, objectFit: 'contain' }}
               />
             </div>
+
+            {/* レベルアップ */}
+            {(() => {
+              const cardLv = state.cardLevels?.[detail.id] || 1;
+              const isMax = cardLv >= MAX_CARD_LEVEL;
+              const cost = !isMax ? LEVEL_UP_COSTS[cardLv - 1] : 0;
+              const canAfford = state.coins >= cost;
+              const stats = getCardStats(detail, 1.0, cardLv);
+              const nextStats = !isMax ? getCardStats(detail, 1.0, cardLv + 1) : null;
+              const color = SERIES_COLORS[detail.series] || '#64748b';
+              return (
+                <div>
+                  {/* 現在のステータス */}
+                  <div className="grid grid-cols-4 gap-2 mb-3">
+                    {[
+                      { label: 'HP',  cur: stats.maxHp, next: nextStats?.maxHp, icon: '❤️' },
+                      { label: 'ATK', cur: stats.atk,   next: nextStats?.atk,   icon: '⚔️' },
+                      { label: 'DEF', cur: stats.def,   next: nextStats?.def,   icon: '🛡️' },
+                      { label: 'SPD', cur: stats.spd,   next: nextStats?.spd,   icon: '💨' },
+                    ].map(({ label, cur, next, icon }) => (
+                      <div key={label} className="text-center rounded-lg p-2" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                        <div className="text-sm">{icon}</div>
+                        <div className="font-black text-sm" style={{ color }}>{cur}</div>
+                        {next && <div className="text-xs" style={{ color: '#4ade80' }}>↑{next}</div>}
+                        <div className="text-xs" style={{ color: '#475569' }}>{label}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* レベルバー */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-xs font-bold" style={{ color: '#94a3b8' }}>Lv</span>
+                    <div className="flex gap-1 flex-1">
+                      {Array.from({ length: MAX_CARD_LEVEL }).map((_, i) => (
+                        <div key={i} className="flex-1 h-2 rounded-full"
+                          style={{ background: i < cardLv ? color : 'rgba(255,255,255,0.1)' }} />
+                      ))}
+                    </div>
+                    <span className="text-xs font-black" style={{ color }}>{cardLv}/{MAX_CARD_LEVEL}</span>
+                  </div>
+
+                  {/* レベルアップボタン */}
+                  {isMax ? (
+                    <div className="text-center py-2 rounded-xl font-black text-sm"
+                      style={{ background: `${color}22`, color }}>
+                      👑 MAX レベル達成！
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => { onUpgradeCard(detail.id); }}
+                      disabled={!canAfford}
+                      className="w-full py-3 rounded-xl font-black text-white transition-all active:scale-95 disabled:opacity-40"
+                      style={{
+                        background: canAfford ? `linear-gradient(135deg, ${color}, ${color}cc)` : 'rgba(255,255,255,0.1)',
+                        boxShadow: canAfford ? `0 4px 16px ${color}44` : 'none',
+                      }}
+                    >
+                      ⬆️ Lv.{cardLv} → Lv.{cardLv + 1}
+                      <span className="ml-2 text-sm font-normal opacity-90">🪙 {cost}</span>
+                      {!canAfford && <div className="text-xs font-normal opacity-70">コインが足りません</div>}
+                    </button>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}

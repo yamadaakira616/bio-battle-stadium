@@ -41,8 +41,8 @@ const FLASH_COLORS = {
   catsle: 'rgba(251,191,36,0.35)',
 };
 
-function buildUnit(card, scaleMult, side, index) {
-  const stats = getCardStats(card, scaleMult);
+function buildUnit(card, scaleMult, side, index, cardLevel = 1) {
+  const stats = getCardStats(card, scaleMult, cardLevel);
   return {
     ...stats,
     uid: `${card.id}-${side}-${index}`,
@@ -61,7 +61,7 @@ function shuffle(arr) {
   return a;
 }
 
-export default function BattleScreen({ state, nation, teamCardIds, onBack, onVictory, onDefeat }) {
+export default function BattleScreen({ state, nation, teamCardIds, cardLevels = {}, onBack, onVictory, onDefeat }) {
   const [tick, setTick] = useState(0);
   const [phase, setPhase] = useState('intro'); // intro | battle | victory | defeat
   const [speed, setSpeed] = useState(1);
@@ -81,8 +81,8 @@ export default function BattleScreen({ state, nation, teamCardIds, onBack, onVic
     const playerCards = teamCardIds.map(id => stickerMap[id]).filter(Boolean);
     const enemyCards = nation.team;
 
-    const playerTeam = playerCards.map((card, i) => buildUnit(card, 1.0, 'player', i));
-    const enemyTeam = enemyCards.map((card, i) => buildUnit(card, nation.scaleMult, 'enemy', i));
+    const playerTeam = playerCards.map((card, i) => buildUnit(card, 1.0, 'player', i, cardLevels[card.id] || 1));
+    const enemyTeam = enemyCards.map((card, i) => buildUnit(card, nation.scaleMult, 'enemy', i, 1));
 
     gameRef.current = {
       playerTeam,

@@ -29,7 +29,7 @@ export default function App() {
   const {
     state, addCoins, spendCoins, levelUp, saveStars,
     updateBestCombo, incLevelPlayCount, pullGacha, updateBookPage,
-    updateBattleProgress, saveBattleTeam,
+    updateBattleProgress, saveBattleTeam, upgradeCard,
   } = useGameState();
 
   if (screen === SCREEN.HOME) return (
@@ -75,6 +75,7 @@ export default function App() {
     <EncyclopediaScreen
       state={state}
       onBack={() => setScreen(SCREEN.HOME)}
+      onUpgradeCard={upgradeCard}
     />
   );
 
@@ -107,6 +108,7 @@ export default function App() {
       state={state}
       nation={selectedNation}
       teamCardIds={battleTeam}
+      cardLevels={state.cardLevels || {}}
       onBack={() => setScreen(SCREEN.BATTLE_MAP)}
       onVictory={(nationId, teamIds, reward) => {
         addCoins(reward);
