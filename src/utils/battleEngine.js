@@ -49,12 +49,8 @@ export function getLevelUpCost(series, currentLevel) {
 // Lv.1 を基準に各レベルのステータス倍率を計算
 function levelMult(level) {
   const lv = Math.max(1, Math.min(level || 1, MAX_CARD_LEVEL));
-  return {
-    hp:  1 + (lv - 1) * 0.08,
-    atk: 1 + (lv - 1) * 0.07,
-    def: 1 + (lv - 1) * 0.07,
-    spd: 1 + (lv - 1) * 0.04,
-  };
+  const m = 1 + (lv - 1) * 0.10;
+  return { hp: m, atk: m, def: m, spd: m };
 }
 
 export function getCardStats(card, scaleMult = 1, cardLevel = 1) {
