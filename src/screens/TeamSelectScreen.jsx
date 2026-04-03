@@ -17,28 +17,18 @@ const SERIES_COLORS = {
   corps: '#a855f7',
   catsle: '#fbbf24',
 };
-const DEFAULT_STARTERS = {
-  bio: 'bio-migratory-locust',
-  arms: 'arm-medieval-crossbow',
-  armbio: 'ab-mantis-with-emp',
-  corps: 'cor-honeybee-mosquito-squadron',
-  catsle: 'cas-white-lion-king',
-};
-
 const stickerMap = Object.fromEntries(STICKERS.map(s => [s.id, s]));
 
 export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
-  // Initialize selections: use last team if available, else first card per series
   const lastTeam = state.battleProgress?.teamIds || [];
 
   function getInitialSelection() {
     const sel = {};
     SERIES_ORDER.forEach((series, idx) => {
       const owned = STICKERS.filter(s => s.series === series && state.collection.includes(s.id));
-      const pool = owned.length > 0 ? owned : [stickerMap[DEFAULT_STARTERS[series]]].filter(Boolean);
       const lastCard = lastTeam[idx] ? stickerMap[lastTeam[idx]] : null;
-      const validLast = lastCard && pool.find(c => c.id === lastCard.id);
-      sel[series] = validLast ? lastCard.id : (pool[0]?.id || DEFAULT_STARTERS[series]);
+      const validLast = lastCard && owned.find(c => c.id === lastCard.id);
+      sel[series] = validLast ? lastCard.id : (owned[0]?.id || null);
     });
     return sel;
   }
@@ -135,34 +125,46 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
       <div className="flex-1 overflow-y-auto px-4 pb-8 flex flex-col gap-4">
         {SERIES_ORDER.map(series => {
           const owned = STICKERS.filter(s => s.series === series && state.collection.includes(s.id));
-          const pool = owned.length > 0 ? owned : [stickerMap[DEFAULT_STARTERS[series]]].filter(Boolean);
           const selectedId = selections[series];
           const selectedCard = selectedId ? stickerMap[selectedId] : null;
           const selectedStats = selectedCard ? getCardStats(selectedCard, 1.0) : null;
           const color = SERIES_COLORS[series];
+          const hasCards = owned.length > 0;
 
           return (
             <div
               key={series}
               className="rounded-2xl overflow-hidden"
-              style={{ border: `1px solid ${color}33`, background: 'rgba(255,255,255,0.03)' }}
+              style={{ border: `1px solid ${hasCards ? color : '#ffffff22'}33`, background: 'rgba(255,255,255,0.03)' }}
             >
               {/* Series header */}
               <div
                 className="px-4 py-2 flex items-center justify-between"
                 style={{ background: `${color}18`, borderBottom: `1px solid ${color}22` }}
               >
-                <div className="font-black text-sm" style={{ color }}>
+                <div className="font-black text-sm flex items-center gap-1.5" style={{ color }}>
+                  {!hasCards && <span style={{ color: '#ef4444' }}>⚠</span>}
                   {SERIES_LABELS[series]}
                 </div>
-                <div className="text-xs" style={{ color: '#94a3b8' }}>
-                  {owned.length > 0 ? `${owned.length}枚所持` : 'スターター'}
+                <div className="text-xs" style={{ color: hasCards ? '#94a3b8' : '#ef4444' }}>
+                  {hasCards ? `${owned.length}枚所持` : '未所持'}
                 </div>
               </div>
 
-              {/* Card scroll */}
+              {/* Card scroll or empty state */}
+              {!hasCards ? (
+                <div className="flex flex-col items-center justify-center py-6 gap-2">
+                  <div className="text-3xl opacity-30">🎰</div>
+                  <div className="text-sm font-bold" style={{ color: '#64748b' }}>
+                    このシリーズのカードがありません
+                  </div>
+                  <div className="text-xs" style={{ color: '#475569' }}>
+                    ガチャで{SERIES_LABELS[series]}カードをゲットしよう！
+                  </div>
+                </div>
+              ) : (
               <div className="flex gap-2 p-3 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-                {pool.map(card => {
+                {owned.map(card => {
                   const isSelected = card.id === selectedId;
                   return (
                     <button
@@ -192,6 +194,7 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
                   );
                 })}
               </div>
+              )}
 
               {/* Selected card stats */}
               {selectedStats && (
@@ -220,6 +223,14 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
 
       {/* Bottom CTA */}
       <div className="px-4 pb-6 pt-2" style={{ background: 'rgba(10,15,30,0.95)' }}>
+        {!allSelected && (
+          <div className="text-center text-xs mb-2" style={{ color: '#ef4444' }}>
+            ⚠️ {SERIES_ORDER
+              .filter(s => !selections[s])
+              .map(s => SERIES_LABELS[s])
+              .join('・')}のカードがありません。ガチャで入手しよう！
+          </div>
+        )}
         <button
           onClick={handleConfirm}
           disabled={!allSelected}
