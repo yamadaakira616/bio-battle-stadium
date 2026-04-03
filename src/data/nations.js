@@ -7,7 +7,7 @@ export const NATIONS = [
   {
     id: 'grassland', name: '草原国', nameEn: 'Grassland Kingdom',
     emoji: '🌿', color: '#22c55e', bgGrad: 'linear-gradient(160deg,#052e16,#14532d)',
-    difficulty: 1, scaleMult: 0.75, reward: 60,
+    difficulty: 1, scaleMult: 0.70, reward: 60,
     team: [
       card('bio-migratory-locust'),
       card('arm-japanese-yumi-bow'),
@@ -19,7 +19,7 @@ export const NATIONS = [
   {
     id: 'desert', name: '砂漠国', nameEn: 'Desert Kingdom',
     emoji: '🏜️', color: '#f59e0b', bgGrad: 'linear-gradient(160deg,#451a03,#78350f)',
-    difficulty: 2, scaleMult: 1.0, reward: 90,
+    difficulty: 2, scaleMult: 0.85, reward: 90,
     team: [
       card('bio-african-elephant'),
       card('arm-cavalry-saber'),
@@ -31,7 +31,7 @@ export const NATIONS = [
   {
     id: 'ocean', name: '海洋国', nameEn: 'Ocean Kingdom',
     emoji: '🌊', color: '#0ea5e9', bgGrad: 'linear-gradient(160deg,#082f49,#0c4a6e)',
-    difficulty: 3, scaleMult: 1.25, reward: 120,
+    difficulty: 3, scaleMult: 1.00, reward: 120,
     team: [
       card('bio-plains-zebra'),
       card('arm-fgm148-javelin'),
@@ -43,7 +43,7 @@ export const NATIONS = [
   {
     id: 'mountain', name: '山岳国', nameEn: 'Mountain Kingdom',
     emoji: '🏔️', color: '#94a3b8', bgGrad: 'linear-gradient(160deg,#1e293b,#334155)',
-    difficulty: 4, scaleMult: 1.55, reward: 160,
+    difficulty: 4, scaleMult: 1.10, reward: 160,
     team: [
       card('bio-grizzly-bear'),
       card('arm-scottish-claymore'),
@@ -55,7 +55,7 @@ export const NATIONS = [
   {
     id: 'volcano', name: '火山国', nameEn: 'Volcano Kingdom',
     emoji: '🌋', color: '#ef4444', bgGrad: 'linear-gradient(160deg,#450a0a,#7f1d1d)',
-    difficulty: 5, scaleMult: 1.9, reward: 210,
+    difficulty: 5, scaleMult: 1.20, reward: 210,
     team: [
       card('bio-tyrannosaurus-rex'),
       card('arm-plasma-beam-rifle'),
@@ -67,7 +67,7 @@ export const NATIONS = [
   {
     id: 'ice', name: '氷雪国', nameEn: 'Ice Kingdom',
     emoji: '❄️', color: '#7dd3fc', bgGrad: 'linear-gradient(160deg,#0c1445,#1e3a5f)',
-    difficulty: 6, scaleMult: 2.3, reward: 270,
+    difficulty: 6, scaleMult: 1.30, reward: 270,
     team: [
       card('bio-velociraptor'),
       card('arm-colossal-antimatter-annihilator'),
@@ -79,7 +79,7 @@ export const NATIONS = [
   {
     id: 'thunder', name: '雷鳴国', nameEn: 'Thunder Kingdom',
     emoji: '⚡', color: '#fbbf24', bgGrad: 'linear-gradient(160deg,#1c1200,#292524)',
-    difficulty: 7, scaleMult: 2.8, reward: 350,
+    difficulty: 7, scaleMult: 1.40, reward: 350,
     team: [
       card('bio-spinosaurus'),
       card('arm-divine-celestial-greatsword'),
@@ -91,7 +91,7 @@ export const NATIONS = [
   {
     id: 'shadow', name: '暗黒国', nameEn: 'Shadow Kingdom',
     emoji: '💀', color: '#a855f7', bgGrad: 'linear-gradient(160deg,#0a000f,#1a0030)',
-    difficulty: 8, scaleMult: 3.5, reward: 500,
+    difficulty: 8, scaleMult: 1.50, reward: 500,
     team: [
       card('bio-devils-flower-mantis'),
       card('arm-ultimate-cosmic-staff'),
