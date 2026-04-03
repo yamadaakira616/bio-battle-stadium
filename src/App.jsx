@@ -25,6 +25,7 @@ export default function App() {
   const [selectedLevel, setSelectedLevel] = useState(null);
   const [selectedNation, setSelectedNation] = useState(null);
   const [battleTeam, setBattleTeam] = useState([]);
+  const [battleKey, setBattleKey] = useState(0);
 
   const {
     state, addCoins, spendCoins, levelUp, saveStars,
@@ -105,6 +106,7 @@ export default function App() {
 
   if (screen === SCREEN.BATTLE) return (
     <BattleScreen
+      key={battleKey}
       state={state}
       nation={selectedNation}
       teamCardIds={battleTeam}
@@ -117,7 +119,7 @@ export default function App() {
         setScreen(SCREEN.BATTLE_MAP);
       }}
       onDefeat={action => {
-        if (action === 'retry') setScreen(SCREEN.BATTLE);
+        if (action === 'retry') setBattleKey(k => k + 1);
         else if (action === 'changeTeam') setScreen(SCREEN.TEAM_SELECT);
         else setScreen(SCREEN.BATTLE_MAP);
       }}
