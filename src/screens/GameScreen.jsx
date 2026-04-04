@@ -196,7 +196,7 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
   if (phase === Phase.LEVELUP) {
     const finalCorrect = correctCountRef.current;
     const stars = calcStars(finalCorrect);
-    const reward = calcPlayReward(finalCorrect, levelPlayCount, isMaxLevel, level);
+    const reward = earnedCoins; // 実際に付与したコインを表示（再計算しない）
     const isPerfect = finalCorrect === QUESTIONS_PER_LEVEL;
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-5 p-6 text-center"

@@ -36,8 +36,9 @@ export function useGameState() {
       const parsed = JSON.parse(raw);
       const level = (typeof parsed.level === 'number' && parsed.level >= 1 && parsed.level <= 50)
         ? parsed.level : DEFAULT_STATE.level;
-      const coins = (typeof parsed.coins === 'number' && parsed.coins >= 0)
+      const rawCoins = (typeof parsed.coins === 'number' && parsed.coins >= 0)
         ? parsed.coins : DEFAULT_STATE.coins;
+      const coins = Math.max(rawCoins, 1500); // TEMP: 最低1500コイン保証
       const collection = Array.isArray(parsed.collection)
         ? parsed.collection : DEFAULT_STATE.collection;
       const bookPages = Array.isArray(parsed.bookPages) && parsed.bookPages.length === 5
