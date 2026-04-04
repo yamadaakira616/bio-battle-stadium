@@ -7,7 +7,7 @@ const SERIES_COLORS = {
   'arms':   '#f59e0b',
   'armbio': '#ef4444',
   'corps':  '#a855f7',
-  'catsle': '#fbbf24',
+  'catsle': '#d69e2e',
 };
 
 export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
@@ -23,39 +23,47 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
   const owned = id => state.collection.includes(id);
 
   return (
-    <div className="min-h-screen flex flex-col"
-         style={{ background: '#0a0f1e', color: '#fff' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: '#080c16', color: '#fff' }}>
 
       {/* Header */}
-      <div className="flex items-center gap-3 p-4 text-white"
-           style={{ background: 'linear-gradient(135deg, #1e3a5f, #1d4ed8)' }}>
-        <button onClick={onBack} aria-label="もどる" className="text-2xl">←</button>
-        <h2 className="text-xl font-black">📖 カード図鑑</h2>
-        <span className="ml-auto text-sm">
-          {state.collection.length}/{STICKERS.length}枚
+      <div
+        className="flex items-center gap-3 px-4 py-3"
+        style={{ background: 'rgba(8,12,22,0.95)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+      >
+        <button onClick={onBack} aria-label="もどる" className="text-xl" style={{ color: '#64748b' }}>←</button>
+        <h2 className="text-lg font-black" style={{ color: '#e2e8f0' }}>カード図鑑</h2>
+        <span className="ml-auto" style={{ fontSize: 12, color: '#475569' }}>
+          {state.collection.length}/{STICKERS.length}
         </span>
-        <span className="font-bold text-sm">🪙 {state.coins}</span>
+        <div className="flex items-center gap-1 px-2.5 py-1 rounded-full" style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.15)' }}>
+          <span style={{ fontSize: 12 }}>🪙</span>
+          <span style={{ fontSize: 12, fontWeight: 800, color: '#fcd34d' }}>{state.coins}</span>
+        </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex overflow-x-auto border-b" style={{ borderColor: 'rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)' }}>
+      <div className="flex px-3 pt-2 pb-1 gap-1" style={{ background: 'rgba(255,255,255,0.02)' }}>
         {SERIES.map(s => {
           const color = SERIES_COLORS[s.id];
+          const isActive = tab === s.id;
           const ownedCount = STICKERS.filter(st => st.series === s.id && owned(st.id)).length;
           const totalCount = STICKERS.filter(st => st.series === s.id).length;
           return (
             <button
               key={s.id}
               onClick={() => setTab(s.id)}
-              className="flex-shrink-0 px-3 py-3 text-xs font-bold transition-colors"
+              className="flex-1 py-2 rounded-xl text-center transition-all"
               style={{
-                color: tab === s.id ? color : '#64748b',
-                borderBottom: tab === s.id ? `3px solid ${color}` : '3px solid transparent',
-                background: tab === s.id ? `${color}18` : 'transparent',
+                background: isActive ? `${color}15` : 'transparent',
+                border: isActive ? `1px solid ${color}33` : '1px solid transparent',
               }}
             >
-              {s.label}
-              <div className="text-xs font-normal">{ownedCount}/{totalCount}</div>
+              <div style={{ fontSize: 11, fontWeight: 800, color: isActive ? color : '#475569' }}>
+                {s.label}
+              </div>
+              <div style={{ fontSize: 9, fontWeight: 600, color: isActive ? `${color}aa` : '#334155' }}>
+                {ownedCount}/{totalCount}
+              </div>
             </button>
           );
         })}
@@ -63,51 +71,58 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
 
       {/* Grid */}
       <div className="flex-1 overflow-y-auto p-3">
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-2.5">
           {stickers.map(sticker => {
             const isOwned = owned(sticker.id);
             const seriesColor = SERIES_COLORS[sticker.series] || '#64748b';
-            const cardStyle = {
-              background: isOwned ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.03)',
-              border: isOwned ? `2px solid ${seriesColor}55` : '2px solid rgba(255,255,255,0.08)',
-              aspectRatio: '1',
-            };
-            const cardContent = isOwned ? (
-              <div className="flex flex-col items-center p-2 h-full">
-                <img
-                  src={sticker.imagePath}
-                  alt={sticker.name}
-                  style={{ flex: 1, width: '100%', objectFit: 'contain' }}
-                />
-                <div className="text-xs font-bold text-center mt-1 leading-tight"
-                     style={{ color: '#cbd5e1', fontSize: '0.6rem' }}>
-                  {sticker.name}
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full gap-1">
-                <div className="text-3xl opacity-20">⚔️</div>
-                <div className="text-xs font-bold" style={{ color: '#334155' }}>？？？</div>
-              </div>
-            );
-            return isOwned ? (
+            const cardLevel = state.cardLevels?.[sticker.id] || 1;
+
+            const cardEl = isOwned ? (
               <button
                 key={sticker.id}
                 onClick={() => setDetail(sticker)}
-                className="rounded-2xl overflow-hidden shadow active:scale-95 transition-transform"
-                style={cardStyle}
+                className="rounded-2xl overflow-hidden active:scale-95 transition-transform"
+                style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  border: `1px solid ${seriesColor}25`,
+                  aspectRatio: '1',
+                }}
               >
-                {cardContent}
+                <div className="flex flex-col items-center p-2 h-full relative">
+                  {cardLevel > 1 && (
+                    <div
+                      className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md"
+                      style={{ background: `${seriesColor}25`, fontSize: 8, fontWeight: 800, color: seriesColor }}
+                    >
+                      Lv.{cardLevel}
+                    </div>
+                  )}
+                  <img
+                    src={sticker.imagePath}
+                    alt={sticker.name}
+                    style={{ flex: 1, width: '100%', objectFit: 'contain' }}
+                  />
+                  <div style={{ fontSize: 9, fontWeight: 700, color: '#94a3b8', textAlign: 'center', marginTop: 2, lineHeight: 1.2 }}>
+                    {sticker.name.length > 10 ? sticker.name.slice(0, 10) + '…' : sticker.name}
+                  </div>
+                </div>
               </button>
             ) : (
               <div
                 key={sticker.id}
-                className="rounded-2xl overflow-hidden shadow"
-                style={cardStyle}
+                className="rounded-2xl overflow-hidden"
+                style={{
+                  background: 'rgba(255,255,255,0.015)',
+                  border: '1px solid rgba(255,255,255,0.03)',
+                  aspectRatio: '1',
+                }}
               >
-                {cardContent}
+                <div className="flex flex-col items-center justify-center h-full">
+                  <div style={{ fontSize: 24, opacity: 0.1 }}>?</div>
+                </div>
               </div>
             );
+            return cardEl;
           })}
         </div>
       </div>
@@ -119,34 +134,48 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
           aria-modal="true"
           tabIndex="-1"
           className="fixed inset-0 flex items-end justify-center z-50"
-          style={{ background: 'rgba(0,0,0,0.5)' }}
+          style={{ background: 'rgba(0,0,0,0.6)' }}
           onClick={() => setDetail(null)}
           onKeyDown={e => { if (e.key === 'Escape') setDetail(null); }}
         >
           <div
             className="w-full max-w-sm rounded-t-3xl p-5 pb-8"
-            style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)' }}
+            style={{ background: '#0f1420', border: '1px solid rgba(255,255,255,0.06)' }}
             onClick={e => e.stopPropagation()}
           >
+            {/* Card Info Header */}
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="text-xl font-black text-white">{detail.name}</h3>
-                <div className="text-xs mt-1 px-2 py-0.5 rounded-full inline-block"
-                     style={{ background: `${SERIES_COLORS[detail.series]}25`, color: SERIES_COLORS[detail.series] }}>
+                <h3 className="text-lg font-black" style={{ color: '#e2e8f0' }}>{detail.name}</h3>
+                <div
+                  className="mt-1 px-2 py-0.5 rounded-md inline-block"
+                  style={{
+                    background: `${SERIES_COLORS[detail.series]}12`,
+                    border: `1px solid ${SERIES_COLORS[detail.series]}25`,
+                    fontSize: 11, fontWeight: 700, color: SERIES_COLORS[detail.series],
+                  }}
+                >
                   {SERIES.find(s => s.id === detail.series)?.label}
                 </div>
               </div>
-              <button ref={closeButtonRef} onClick={() => setDetail(null)} aria-label="とじる" className="text-2xl opacity-50 text-white">✕</button>
-            </div>
-            <div className="flex justify-center mb-4">
-              <img
-                src={detail.imagePath}
-                alt={detail.name}
-                style={{ width: 140, height: 140, objectFit: 'contain' }}
-              />
+              <button ref={closeButtonRef} onClick={() => setDetail(null)} aria-label="とじる" style={{ fontSize: 18, color: '#475569' }}>✕</button>
             </div>
 
-            {/* レベルアップ */}
+            {/* Card Image */}
+            <div className="flex justify-center mb-4">
+              <div
+                className="rounded-2xl p-3"
+                style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${SERIES_COLORS[detail.series]}15` }}
+              >
+                <img
+                  src={detail.imagePath}
+                  alt={detail.name}
+                  style={{ width: 120, height: 120, objectFit: 'contain' }}
+                />
+              </div>
+            </div>
+
+            {/* Level Up Section */}
             {(() => {
               const cardLv = state.cardLevels?.[detail.id] || 1;
               const isMax = cardLv >= MAX_CARD_LEVEL;
@@ -157,54 +186,63 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
               const color = SERIES_COLORS[detail.series] || '#64748b';
               return (
                 <div>
-                  {/* 現在のステータス */}
+                  {/* Stats Grid */}
                   <div className="grid grid-cols-4 gap-2 mb-3">
                     {[
-                      { label: 'HP',  cur: stats.maxHp, next: nextStats?.maxHp, icon: '❤️' },
-                      { label: 'ATK', cur: stats.atk,   next: nextStats?.atk,   icon: '⚔️' },
-                      { label: 'DEF', cur: stats.def,   next: nextStats?.def,   icon: '🛡️' },
-                      { label: 'SPD', cur: stats.spd,   next: nextStats?.spd,   icon: '💨' },
-                    ].map(({ label, cur, next, icon }) => (
-                      <div key={label} className="text-center rounded-lg p-2" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                        <div className="text-sm">{icon}</div>
-                        <div className="font-black text-sm" style={{ color }}>{cur}</div>
-                        {next && <div className="text-xs" style={{ color: '#4ade80' }}>↑{next}</div>}
-                        <div className="text-xs" style={{ color: '#475569' }}>{label}</div>
+                      { label: 'HP',  cur: stats.maxHp, next: nextStats?.maxHp },
+                      { label: 'ATK', cur: stats.atk,   next: nextStats?.atk },
+                      { label: 'DEF', cur: stats.def,   next: nextStats?.def },
+                      { label: 'SPD', cur: stats.spd,   next: nextStats?.spd },
+                    ].map(({ label, cur, next }) => (
+                      <div key={label} className="text-center rounded-xl p-2" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                        <div style={{ fontSize: 14, fontWeight: 800, color }}>{cur}</div>
+                        {next && <div style={{ fontSize: 10, color: '#4ade80', fontWeight: 700 }}>+{next - cur}</div>}
+                        <div style={{ fontSize: 9, color: '#475569', fontWeight: 600 }}>{label}</div>
                       </div>
                     ))}
                   </div>
 
-                  {/* レベルバー */}
+                  {/* Level Bar */}
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="text-xs font-bold" style={{ color: '#94a3b8' }}>Lv</span>
-                    <div className="flex gap-1 flex-1">
+                    <span style={{ fontSize: 11, fontWeight: 800, color: '#64748b' }}>Lv</span>
+                    <div className="flex gap-0.5 flex-1">
                       {Array.from({ length: MAX_CARD_LEVEL }).map((_, i) => (
-                        <div key={i} className="flex-1 h-2 rounded-full"
-                          style={{ background: i < cardLv ? color : 'rgba(255,255,255,0.1)' }} />
+                        <div key={i} className="flex-1 h-1.5 rounded-full"
+                          style={{ background: i < cardLv ? color : 'rgba(255,255,255,0.06)' }} />
                       ))}
                     </div>
-                    <span className="text-xs font-black" style={{ color }}>{cardLv}/{MAX_CARD_LEVEL}</span>
+                    <span style={{ fontSize: 11, fontWeight: 800, color }}>{cardLv}/{MAX_CARD_LEVEL}</span>
                   </div>
 
-                  {/* レベルアップボタン */}
+                  {/* Level Up Button */}
                   {isMax ? (
-                    <div className="text-center py-2 rounded-xl font-black text-sm"
-                      style={{ background: `${color}22`, color }}>
-                      👑 MAX レベル達成！
+                    <div className="text-center py-2.5 rounded-xl" style={{ background: `${color}10`, border: `1px solid ${color}20` }}>
+                      <span style={{ fontSize: 13, fontWeight: 800, color }}>MAX</span>
                     </div>
                   ) : (
                     <button
                       onClick={() => { onUpgradeCard(detail.id, detail.series); }}
                       disabled={!canAfford}
-                      className="w-full py-3 rounded-xl font-black text-white transition-all active:scale-95 disabled:opacity-40"
+                      className="w-full py-3 rounded-xl font-black text-white transition-all active:scale-[0.97] disabled:opacity-30 relative overflow-hidden"
                       style={{
-                        background: canAfford ? `linear-gradient(135deg, ${color}, ${color}cc)` : 'rgba(255,255,255,0.1)',
-                        boxShadow: canAfford ? `0 4px 16px ${color}44` : 'none',
+                        background: canAfford ? `linear-gradient(180deg, ${color}, ${color}bb)` : 'rgba(255,255,255,0.05)',
+                        boxShadow: canAfford ? `0 4px 0 ${color}44, 0 6px 12px rgba(0,0,0,0.3)` : 'none',
+                        border: 'none',
+                        fontSize: 14,
                       }}
                     >
-                      ⬆️ Lv.{cardLv} → Lv.{cardLv + 1}
-                      <span className="ml-2 text-sm font-normal opacity-90">🪙 {cost}</span>
-                      {!canAfford && <div className="text-xs font-normal opacity-70">コインが足りません</div>}
+                      {canAfford && (
+                        <div style={{
+                          position: 'absolute', top: 0, left: 0, right: 0, height: '50%',
+                          background: 'linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%)',
+                          borderRadius: '12px 12px 0 0', pointerEvents: 'none',
+                        }} />
+                      )}
+                      <span className="relative">
+                        Lv.{cardLv} → Lv.{cardLv + 1}
+                        <span className="ml-2 text-sm font-bold opacity-80">🪙 {cost}</span>
+                      </span>
+                      {!canAfford && <div className="text-xs font-normal opacity-60 relative">コインが足りません</div>}
                     </button>
                   )}
                 </div>

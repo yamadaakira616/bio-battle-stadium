@@ -675,29 +675,34 @@ export default function BattleScreen({ state, nation, teamCardIds, cardLevels = 
         ))}
 
         <div style={{ textAlign: 'center', animation: 'victoryPop 0.6s cubic-bezier(0.175,0.885,0.32,1.275)', width: '100%', maxWidth: 400 }}>
-          <div style={{ fontSize: 48, marginBottom: 4 }}>🎉</div>
-          <div style={{ fontSize: 36, fontWeight: 900, color: '#fbbf24', textShadow: '0 0 30px rgba(251,191,36,0.8)', marginBottom: 4 }}>
-            VICTORY!
+          <div style={{ fontSize: 36, fontWeight: 900, color: '#fcd34d', marginBottom: 4, letterSpacing: 2 }}>
+            VICTORY
           </div>
-          <div style={{ color: '#e2e8f0', fontSize: 16, marginBottom: 4 }}>
+          <div style={{ color: '#94a3b8', fontSize: 14, marginBottom: 4 }}>
             {nation.emoji} {nation.name} を制覇！
           </div>
-          <div style={{ fontSize: 22, fontWeight: 900, color: '#fbbf24', marginBottom: 20 }}>
-            🪙 +{nation.reward}
-          </div>
+          {isFirstClear ? (
+            <div style={{ fontSize: 22, fontWeight: 900, color: '#fbbf24', marginBottom: 20 }}>
+              🪙 +{nation.reward}
+            </div>
+          ) : (
+            <div style={{ fontSize: 13, color: '#64748b', marginBottom: 20 }}>
+              ※ コイン報酬は初回クリアのみ
+            </div>
+          )}
 
           {/* カード選択（初回クリア時のみ） */}
           {!isFirstClear ? (
             <button
-              onClick={() => onVictory(nation.id, teamCardIds, nation.reward, null)}
+              onClick={() => onVictory(nation.id, teamCardIds, 0, null)}
               style={{
-                padding: '14px 28px', borderRadius: 16, border: 'none', cursor: 'pointer',
-                background: 'linear-gradient(135deg, #fbbf24, #d97706)',
-                color: '#000', fontWeight: 900, fontSize: 18,
-                boxShadow: '0 8px 24px rgba(251,191,36,0.4)',
+                padding: '14px 32px', borderRadius: 16, border: 'none', cursor: 'pointer',
+                background: 'linear-gradient(180deg, #f59e0b, #b45309)',
+                color: '#fff', fontWeight: 900, fontSize: 16,
+                boxShadow: '0 4px 0 #78350f, 0 6px 16px rgba(0,0,0,0.4)',
               }}
             >
-              🗺️ マップへ戻る
+              マップへ戻る
             </button>
           ) : !confirmed ? (
             <>
@@ -750,14 +755,14 @@ export default function BattleScreen({ state, nation, teamCardIds, cardLevels = 
                 disabled={!picked}
                 style={{
                   padding: '12px 28px', borderRadius: 14, border: 'none', cursor: picked ? 'pointer' : 'not-allowed',
-                  background: picked ? 'linear-gradient(135deg, #22c55e, #16a34a)' : 'rgba(255,255,255,0.1)',
-                  color: '#fff', fontWeight: 900, fontSize: 16,
-                  boxShadow: picked ? '0 4px 16px rgba(34,197,94,0.4)' : 'none',
-                  opacity: picked ? 1 : 0.5,
+                  background: picked ? 'linear-gradient(180deg, #22c55e, #15803d)' : 'rgba(255,255,255,0.05)',
+                  color: '#fff', fontWeight: 900, fontSize: 15,
+                  boxShadow: picked ? '0 4px 0 #14532d, 0 6px 12px rgba(0,0,0,0.3)' : 'none',
+                  opacity: picked ? 1 : 0.4,
                   marginBottom: 8,
                 }}
               >
-                {picked ? `✅ ${picked.name.slice(0,14)} をゲット！` : 'カードを選んでください'}
+                {picked ? `${picked.name.slice(0,14)} をゲット！` : 'カードを選んでください'}
               </button>
             </>
           ) : (
@@ -784,13 +789,13 @@ export default function BattleScreen({ state, nation, teamCardIds, cardLevels = 
               <button
                 onClick={() => onVictory(nation.id, teamCardIds, nation.reward, picked.id)}
                 style={{
-                  padding: '14px 28px', borderRadius: 16, border: 'none', cursor: 'pointer',
-                  background: 'linear-gradient(135deg, #fbbf24, #d97706)',
-                  color: '#000', fontWeight: 900, fontSize: 18,
-                  boxShadow: '0 8px 24px rgba(251,191,36,0.4)',
+                  padding: '14px 32px', borderRadius: 16, border: 'none', cursor: 'pointer',
+                  background: 'linear-gradient(180deg, #f59e0b, #b45309)',
+                  color: '#fff', fontWeight: 900, fontSize: 16,
+                  boxShadow: '0 4px 0 #78350f, 0 6px 16px rgba(0,0,0,0.4)',
                 }}
               >
-                🗺️ マップへ戻る
+                マップへ戻る
               </button>
             </>
           )}
@@ -802,55 +807,53 @@ export default function BattleScreen({ state, nation, teamCardIds, cardLevels = 
   const DefeatScreen = () => (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 50,
-      background: 'rgba(0,0,0,0.88)',
+      background: 'rgba(0,0,0,0.9)',
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
     }}>
       <div style={{ textAlign: 'center', animation: 'victoryPop 0.5s ease-out' }}>
-        <div style={{ fontSize: 64, marginBottom: 8 }}>💀</div>
         <div style={{
-          fontSize: 48, fontWeight: 900, color: '#ef4444',
-          textShadow: '0 0 30px rgba(239,68,68,0.8)',
-          marginBottom: 12,
+          fontSize: 36, fontWeight: 900, color: '#ef4444',
+          marginBottom: 8, letterSpacing: 2,
         }}>
           DEFEAT
         </div>
-        <div style={{ color: '#94a3b8', fontSize: 16, marginBottom: 28 }}>
+        <div style={{ color: '#64748b', fontSize: 14, marginBottom: 32 }}>
           {nation.emoji} {nation.name} に敗れた…
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 240 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minWidth: 240 }}>
           <button
             onClick={() => onDefeat('retry')}
             style={{
               padding: '14px 24px', borderRadius: 16,
-              background: 'linear-gradient(135deg, #ef4444, #b91c1c)',
-              color: '#fff', fontWeight: 900, fontSize: 18,
+              background: 'linear-gradient(180deg, #ef4444, #b91c1c)',
+              color: '#fff', fontWeight: 900, fontSize: 16,
               border: 'none', cursor: 'pointer',
-              boxShadow: '0 8px 24px rgba(239,68,68,0.3)',
+              boxShadow: '0 4px 0 #7f1d1d, 0 6px 16px rgba(0,0,0,0.4)',
             }}
           >
-            🔄 リトライ
+            リトライ
           </button>
           <button
             onClick={() => onDefeat('changeTeam')}
             style={{
-              padding: '14px 24px', borderRadius: 16,
-              background: 'rgba(255,255,255,0.1)',
-              color: '#e2e8f0', fontWeight: 700, fontSize: 16,
-              border: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer',
+              padding: '12px 24px', borderRadius: 16,
+              background: 'rgba(255,255,255,0.04)',
+              color: '#94a3b8', fontWeight: 700, fontSize: 14,
+              border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer',
             }}
           >
-            🔧 チーム変更
+            チーム変更
           </button>
           <button
             onClick={() => onDefeat('back')}
             style={{
-              padding: '12px 24px', borderRadius: 16,
+              padding: '10px 24px', borderRadius: 16,
               background: 'transparent',
-              color: '#64748b', fontWeight: 600, fontSize: 15,
-              border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer',
+              color: '#475569', fontWeight: 600, fontSize: 13,
+              border: 'none', cursor: 'pointer',
             }}
           >
-            🗺️ マップへ戻る
+            マップへ戻る
           </button>
         </div>
       </div>

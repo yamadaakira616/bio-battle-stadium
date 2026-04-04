@@ -15,9 +15,8 @@ const SERIES_COLORS = {
   arms: '#f59e0b',
   armbio: '#ef4444',
   corps: '#a855f7',
-  catsle: '#fbbf24',
+  catsle: '#d69e2e',
 };
-// シリーズごとの最弱スターターカード（未所持時のフォールバック）
 const STARTERS = {
   bio:    'bio-migratory-locust',
   arms:   'arm-medieval-crossbow',
@@ -37,7 +36,6 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
       const owned = STICKERS.filter(s => s.series === series && state.collection.includes(s.id));
       const lastCard = lastTeam[idx] ? stickerMap[lastTeam[idx]] : null;
       const validLast = lastCard && owned.find(c => c.id === lastCard.id);
-      // 所持カードがあればそこから、なければスターター
       sel[series] = validLast ? lastCard.id : (owned[0]?.id || STARTERS[series]);
     });
     return sel;
@@ -59,79 +57,51 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
   return (
     <div
       className="min-h-screen flex flex-col"
-      style={{ background: '#0a0f1e', color: '#fff' }}
+      style={{ background: '#080c16', color: '#fff' }}
     >
       {/* Header */}
       <div
         className="flex items-center gap-3 px-4 py-3 sticky top-0 z-10"
-        style={{ background: 'rgba(10,15,30,0.97)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}
+        style={{ background: 'rgba(8,12,22,0.95)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}
       >
-        <button onClick={onBack} className="text-2xl active:scale-90 transition-transform">←</button>
+        <button onClick={onBack} className="text-xl active:scale-90 transition-transform" style={{ color: '#64748b' }}>←</button>
         <div className="flex-1">
-          <h1 className="text-lg font-black">チーム編成</h1>
-          <div className="text-xs" style={{ color: '#94a3b8' }}>
+          <h1 className="font-black" style={{ fontSize: 16, color: '#e2e8f0' }}>チーム編成</h1>
+          <div style={{ fontSize: 11, color: '#475569' }}>
             vs {nation.emoji} {nation.name}
           </div>
         </div>
-        <button
-          onClick={handleConfirm}
-          className="px-4 py-2 rounded-xl font-black text-sm transition-all active:scale-95"
-          style={{
-            background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-            color: '#fff',
-            boxShadow: '0 4px 16px rgba(59,130,246,0.4)',
-          }}
-        >
-          ⚔️ 出陣！
-        </button>
       </div>
 
-      {/* Nation info */}
-      <div
-        className="mx-4 mt-3 mb-2 rounded-xl p-3 flex items-center gap-3"
-        style={{ background: nation.bgGrad, border: `1px solid ${nation.color}44` }}
-      >
-        <span className="text-3xl">{nation.emoji}</span>
-        <div>
-          <div className="font-black">{nation.name}</div>
-          <div className="text-xs flex items-center gap-1" style={{ color: '#cbd5e1' }}>
-            難易度:
-            {Array.from({ length: 8 }).map((_, i) => (
-              <span key={i} style={{ color: i < nation.difficulty ? '#fbbf24' : 'rgba(255,255,255,0.2)' }}>★</span>
-            ))}
-          </div>
-        </div>
-        <div className="ml-auto text-right">
-          <div className="text-xs" style={{ color: '#94a3b8' }}>勝利報酬</div>
-          <div className="font-black" style={{ color: '#fbbf24' }}>🪙 {nation.reward}</div>
-        </div>
-      </div>
-
-      {/* Team preview strip */}
-      <div className="px-4 pb-2">
-        <div className="rounded-xl p-3 flex items-center gap-2" style={{ background: 'rgba(255,255,255,0.05)' }}>
-          <span className="text-xs font-bold mr-1" style={{ color: '#94a3b8' }}>選択中:</span>
+      {/* Team Preview */}
+      <div className="px-4 py-3">
+        <div className="rounded-2xl p-3 flex items-center gap-2" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
           {SERIES_ORDER.map(series => {
             const cardId = selections[series];
             const card = cardId ? stickerMap[cardId] : null;
+            const color = SERIES_COLORS[series];
+            const isOwned = card && state.collection.includes(card.id);
             return (
-              <div key={series} className="flex-1 flex flex-col items-center">
+              <div key={series} className="flex-1 flex flex-col items-center gap-1">
                 <div
-                  className="w-10 h-10 rounded-lg overflow-hidden"
-                  style={{ border: `2px solid ${SERIES_COLORS[series]}`, background: 'rgba(0,0,0,0.3)' }}
+                  className="w-11 h-11 rounded-xl overflow-hidden"
+                  style={{
+                    border: `2px solid ${color}55`,
+                    background: 'rgba(0,0,0,0.3)',
+                    opacity: isOwned ? 1 : 0.5,
+                  }}
                 >
-                  {card && (
-                    <img src={card.imagePath} alt={card.name} className="w-full h-full object-contain" />
-                  )}
+                  {card && <img src={card.imagePath} alt={card.name} className="w-full h-full object-contain" />}
                 </div>
+                {!isOwned && <div style={{ fontSize: 8, color: '#ef4444', fontWeight: 700 }}>弱</div>}
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* Series sections */}
-      <div className="flex-1 overflow-y-auto px-4 pb-8 flex flex-col gap-4">
+      {/* Series Sections */}
+      <div className="flex-1 overflow-y-auto px-4 pb-8 flex flex-col gap-3">
         {SERIES_ORDER.map(series => {
           const owned = STICKERS.filter(s => s.series === series && state.collection.includes(s.id));
           const selectedId = selections[series];
@@ -144,30 +114,43 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
             <div
               key={series}
               className="rounded-2xl overflow-hidden"
-              style={{ border: `1px solid ${hasCards ? color : '#ffffff22'}33`, background: 'rgba(255,255,255,0.03)' }}
+              style={{
+                background: 'rgba(255,255,255,0.02)',
+                border: `1px solid ${hasCards ? color + '20' : 'rgba(255,255,255,0.04)'}`,
+              }}
             >
-              {/* Series header */}
-              <div
-                className="px-4 py-2 flex items-center justify-between"
-                style={{ background: `${color}18`, borderBottom: `1px solid ${color}22` }}
-              >
-                <div className="font-black text-sm flex items-center gap-1.5" style={{ color }}>
-                  {!hasCards && <span style={{ color: '#ef4444' }}>⚠</span>}
-                  {SERIES_LABELS[series]}
+              {/* Series Header */}
+              <div className="px-4 py-2.5 flex items-center justify-between" style={{ borderBottom: `1px solid rgba(255,255,255,0.04)` }}>
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-2 h-2 rounded-full"
+                    style={{ background: color }}
+                  />
+                  <span style={{ fontSize: 13, fontWeight: 800, color: '#e2e8f0' }}>
+                    {SERIES_LABELS[series]}
+                  </span>
                 </div>
-                <div className="text-xs" style={{ color: hasCards ? '#94a3b8' : '#ef4444' }}>
-                  {hasCards ? `${owned.length}枚所持` : '未所持'}
-                </div>
+                <span style={{ fontSize: 11, fontWeight: 600, color: hasCards ? '#475569' : '#7f1d1d' }}>
+                  {hasCards ? `${owned.length}枚` : '未所持'}
+                </span>
               </div>
 
-              {/* Card scroll */}
+              {/* Warning for missing */}
               {!hasCards && (
-                <div className="px-4 pt-2 pb-1">
-                  <div className="text-xs px-2 py-1 rounded-lg inline-block" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171' }}>
-                    ⚠️ 未所持 — スターターカードで参戦（かなり弱い）
+                <div className="px-4 pt-2">
+                  <div style={{
+                    fontSize: 10, color: '#b91c1c',
+                    padding: '4px 8px',
+                    background: 'rgba(239,68,68,0.06)',
+                    borderRadius: 6,
+                    display: 'inline-block',
+                  }}>
+                    スターターで参戦（ステータス半減）
                   </div>
                 </div>
               )}
+
+              {/* Card Scroll */}
               {(() => {
               const pool = hasCards ? owned : [stickerMap[STARTERS[series]]].filter(Boolean);
               return (
@@ -180,22 +163,19 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
                       onClick={() => select(series, card.id)}
                       className="flex-shrink-0 flex flex-col items-center gap-1 rounded-xl p-2 transition-all active:scale-95"
                       style={{
-                        background: isSelected ? `${color}22` : 'rgba(255,255,255,0.05)',
-                        border: isSelected ? `2px solid ${color}` : '2px solid transparent',
-                        boxShadow: isSelected ? `0 0 12px ${color}44` : 'none',
+                        background: isSelected ? `${color}15` : 'rgba(255,255,255,0.02)',
+                        border: isSelected ? `2px solid ${color}88` : '2px solid transparent',
                         minWidth: 72,
                       }}
                     >
-                      <div
-                        className="w-14 h-14 rounded-lg overflow-hidden"
-                        style={{ background: 'rgba(0,0,0,0.3)' }}
-                      >
+                      <div className="w-14 h-14 rounded-xl overflow-hidden" style={{ background: 'rgba(0,0,0,0.25)' }}>
                         <img src={card.imagePath} alt={card.name} className="w-full h-full object-contain" />
                       </div>
-                      <div
-                        className="text-xs font-bold text-center leading-tight"
-                        style={{ color: isSelected ? color : '#cbd5e1', maxWidth: 64, wordBreak: 'break-word' }}
-                      >
+                      <div style={{
+                        fontSize: 10, fontWeight: 700, textAlign: 'center', lineHeight: 1.2,
+                        color: isSelected ? '#e2e8f0' : '#64748b',
+                        maxWidth: 64, wordBreak: 'break-word',
+                      }}>
                         {card.name.length > 10 ? card.name.slice(0, 10) + '…' : card.name}
                       </div>
                     </button>
@@ -205,22 +185,18 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
               );
               })()}
 
-              {/* Selected card stats */}
+              {/* Stats */}
               {selectedStats && (
-                <div
-                  className="mx-3 mb-3 rounded-xl p-3 grid grid-cols-4 gap-2"
-                  style={{ background: 'rgba(0,0,0,0.25)', border: `1px solid ${color}22` }}
-                >
+                <div className="mx-3 mb-3 rounded-xl p-2.5 flex justify-around" style={{ background: 'rgba(0,0,0,0.2)' }}>
                   {[
-                    { label: 'HP',  val: selectedStats.maxHp, icon: '❤️' },
-                    { label: 'ATK', val: selectedStats.atk,   icon: '⚔️' },
-                    { label: 'DEF', val: selectedStats.def,   icon: '🛡️' },
-                    { label: 'SPD', val: selectedStats.spd,   icon: '💨' },
-                  ].map(({ label, val, icon }) => (
+                    { label: 'HP',  val: selectedStats.maxHp },
+                    { label: 'ATK', val: selectedStats.atk },
+                    { label: 'DEF', val: selectedStats.def },
+                    { label: 'SPD', val: selectedStats.spd },
+                  ].map(({ label, val }) => (
                     <div key={label} className="text-center">
-                      <div className="text-sm">{icon}</div>
-                      <div className="text-sm font-black" style={{ color }}>{val}</div>
-                      <div className="text-xs" style={{ color: '#64748b' }}>{label}</div>
+                      <div style={{ fontSize: 13, fontWeight: 800, color }}>{val}</div>
+                      <div style={{ fontSize: 9, color: '#475569', fontWeight: 600 }}>{label}</div>
                     </div>
                   ))}
                 </div>
@@ -231,21 +207,29 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
       </div>
 
       {/* Bottom CTA */}
-      <div className="px-4 pb-6 pt-2" style={{ background: 'rgba(10,15,30,0.95)' }}>
+      <div className="px-4 pb-6 pt-3" style={{ background: 'rgba(8,12,22,0.95)', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
         {missingCount > 0 && (
-          <div className="text-center text-xs mb-2" style={{ color: '#f87171' }}>
-            ⚠️ {missingCount}シリーズ未所持 — スターターカードで参戦（弱め）
+          <div className="text-center mb-2" style={{ fontSize: 11, color: '#7f1d1d' }}>
+            {missingCount}シリーズ未所持 — スターターで参戦
           </div>
         )}
         <button
           onClick={handleConfirm}
-          className="w-full py-4 rounded-2xl text-xl font-black text-white transition-all active:scale-95"
+          className="w-full py-4 rounded-2xl font-black text-white active:scale-[0.97] transition-transform relative overflow-hidden"
           style={{
-            background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-            boxShadow: '0 8px 24px rgba(59,130,246,0.35)',
+            background: 'linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%)',
+            boxShadow: '0 5px 0 #1e3a8a, 0 8px 20px rgba(0,0,0,0.4)',
+            fontSize: '1.1rem',
+            border: 'none',
           }}
         >
-          ⚔️ バトル開始！
+          <div style={{
+            position: 'absolute', top: 0, left: 0, right: 0, height: '50%',
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, transparent 100%)',
+            borderRadius: '16px 16px 0 0',
+            pointerEvents: 'none',
+          }} />
+          <span className="relative">バトル開始！</span>
         </button>
       </div>
     </div>
