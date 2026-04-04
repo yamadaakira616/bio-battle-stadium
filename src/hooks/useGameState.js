@@ -6,7 +6,7 @@ import { getLevelUpCost, MAX_CARD_LEVEL } from '../utils/battleEngine.js';
 const KEY = 'sticker-book-v1';
 const DEFAULT_STATE = {
   level: 1,
-  coins: 100,
+  coins: 500,
   collection: [],
   levelStars: {},
   totalStars: 0,
