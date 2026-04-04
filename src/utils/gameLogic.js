@@ -103,11 +103,7 @@ export const WORLD_COLORS = {
 // 最上位レベル: 常に最大300コイン
 // それ以外: 初回300、2回目150、3回目75、4回目以降50固定（正解数に比例）
 export function calcPlayReward(correctCount, playCount = 0, isMaxLevel = false, level = 1) {
-  // TEMP: レベル15は特別報酬（何回やっても2500コイン満点）
-  if (level === 15) {
-    return Math.round((correctCount / QUESTIONS_PER_LEVEL) * 2500);
-  }
-  const effectivePlayCount = level >= 34 ? 0 : playCount;
+  const effectivePlayCount = level >= 34 || level === 15 ? 0 : playCount;
   const rawBaseMax = isMaxLevel ? 300 : Math.max(50, Math.round(300 / Math.pow(2, effectivePlayCount)));
   const baseMax = level >= 35 ? 400 : rawBaseMax;
   const base = Math.round((correctCount / QUESTIONS_PER_LEVEL) * baseMax);
