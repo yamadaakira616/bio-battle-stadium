@@ -6,12 +6,30 @@ const LEGENDARY_TAB = { id: 'legendary', label: '✨ 伝説' };
 const ALL_TABS = [...SERIES, LEGENDARY_TAB];
 
 const SERIES_COLORS = {
-  'bio':    '#22c55e',
-  'arms':   '#f59e0b',
-  'armbio': '#ef4444',
-  'corps':  '#a855f7',
-  'catsle': '#d69e2e',
-  'legendary': '#FFD700',
+  'bio':              '#22c55e',
+  'arms':             '#f59e0b',
+  'armbio':           '#ef4444',
+  'corps':            '#a855f7',
+  'catsle':           '#d69e2e',
+  'legendary':        '#FFD700',
+  'legendary-bio':    '#FFD700',
+  'legendary-arms':   '#FFD700',
+  'legendary-armbio': '#FFD700',
+  'legendary-corps':  '#FFD700',
+  'legendary-catsle': '#FFD700',
+};
+
+const SERIES_LABELS = {
+  'bio':              '生物',
+  'arms':             '武器',
+  'armbio':           '武装生物',
+  'corps':            '軍団',
+  'catsle':           '城主',
+  'legendary-bio':    '✨ 伝説の生物',
+  'legendary-arms':   '✨ 伝説の武器',
+  'legendary-armbio': '✨ 伝説の武装生物',
+  'legendary-corps':  '✨ 伝説の軍団',
+  'legendary-catsle': '✨ 伝説の城主',
 };
 
 export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
@@ -166,7 +184,7 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
                     fontSize: 11, fontWeight: 700, color: SERIES_COLORS[detail.series],
                   }}
                 >
-                  {SERIES.find(s => s.id === detail.series)?.label}
+                  {SERIES_LABELS[detail.series] ?? detail.series}
                 </div>
               </div>
               <button ref={closeButtonRef} onClick={() => setDetail(null)} aria-label="とじる" style={{ fontSize: 18, color: '#475569' }}>✕</button>
