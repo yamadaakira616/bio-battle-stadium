@@ -2,12 +2,16 @@ import { useState, useEffect, useRef } from 'react';
 import { STICKERS, SERIES } from '../data/stickers.js';
 import { getCardStats, getLevelUpCost, MAX_CARD_LEVEL } from '../utils/battleEngine.js';
 
+const LEGENDARY_TAB = { id: 'legendary', label: '✨ 伝説' };
+const ALL_TABS = [...SERIES, LEGENDARY_TAB];
+
 const SERIES_COLORS = {
   'bio':    '#22c55e',
   'arms':   '#f59e0b',
   'armbio': '#ef4444',
   'corps':  '#a855f7',
   'catsle': '#d69e2e',
+  'legendary': '#FFD700',
 };
 
 export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
@@ -19,7 +23,10 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
     if (detail) closeButtonRef.current?.focus();
   }, [detail]);
 
-  const stickers = STICKERS.filter(s => s.series === tab);
+  const isLegendaryTab = tab === 'legendary';
+  const stickers = isLegendaryTab
+    ? STICKERS.filter(s => s.legendary === true)
+    : STICKERS.filter(s => s.series === tab);
   const owned = id => state.collection.includes(id);
 
   return (
@@ -42,12 +49,16 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
       </div>
 
       {/* Tabs */}
-      <div className="flex px-3 pt-2 pb-1 gap-1" style={{ background: 'rgba(255,255,255,0.02)' }}>
-        {SERIES.map(s => {
-          const color = SERIES_COLORS[s.id];
+      <div className="flex px-3 pt-2 pb-1 gap-1 overflow-x-auto" style={{ background: 'rgba(255,255,255,0.02)' }}>
+        {ALL_TABS.map(s => {
+          const color = SERIES_COLORS[s.id] ?? '#FFD700';
           const isActive = tab === s.id;
-          const ownedCount = STICKERS.filter(st => st.series === s.id && owned(st.id)).length;
-          const totalCount = STICKERS.filter(st => st.series === s.id).length;
+          const ownedCount = s.id === 'legendary'
+            ? STICKERS.filter(st => st.legendary && owned(st.id)).length
+            : STICKERS.filter(st => st.series === s.id && owned(st.id)).length;
+          const totalCount = s.id === 'legendary'
+            ? STICKERS.filter(st => st.legendary).length
+            : STICKERS.filter(st => st.series === s.id).length;
           return (
             <button
               key={s.id}
