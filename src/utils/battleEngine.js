@@ -18,6 +18,12 @@ const SERIES_STATS = {
   armbio: { hp:[95,145],  atk:[85,125],  def:[55,95],  spd:[45,85]  },
   corps:  { hp:[115,165], atk:[65,100],  def:[75,115], spd:[35,70]  },
   catsle: { hp:[145,205], atk:[95,145],  def:[95,145], spd:[25,60]  },
+  // Legendary: 通常シリーズの平均比で約120%高いステータス
+  'legendary-bio':    { hp:[176,286],  atk:[99,176],  def:[77,154], spd:[121,209] },
+  'legendary-arms':   { hp:[121,198],  atk:[165,253], def:[99,176], spd:[143,231] },
+  'legendary-armbio': { hp:[209,319],  atk:[187,275], def:[121,209],spd:[99,187]  },
+  'legendary-corps':  { hp:[253,363],  atk:[143,220], def:[165,253],spd:[77,154]  },
+  'legendary-catsle': { hp:[319,451],  atk:[209,319], def:[209,319],spd:[55,132]  },
 };
 
 const SP_DMG_MULT = {
@@ -26,6 +32,11 @@ const SP_DMG_MULT = {
   armbio: 2.0,
   corps: 1.8,
   catsle: 2.2,
+  'legendary-bio':    2.0,
+  'legendary-arms':   3.2,
+  'legendary-armbio': 2.8,
+  'legendary-corps':  2.5,
+  'legendary-catsle': 3.0,
 };
 
 function lerp(a, b, t) { return Math.round(a + (b - a) * t); }
@@ -37,6 +48,12 @@ export const LEVEL_UP_COSTS = {
   armbio: [400, 480, 570, 670, 790,  920, 1070, 1240, 1440], // 計 7580コイン
   corps:  [450, 540, 640, 760, 890, 1040, 1210, 1400, 1630], // 計 8560コイン
   catsle: [500, 600, 710, 840, 990, 1160, 1350, 1570, 1830], // 計 9550コイン
+  // Legendary: 通常の約2倍コスト
+  'legendary-bio':    [ 660,  790,  950, 1120, 1320, 1540, 1790, 2070, 2400],
+  'legendary-arms':   [ 770,  920, 1100, 1300, 1520, 1780, 2070, 2400, 2800],
+  'legendary-armbio': [ 880, 1060, 1260, 1480, 1740, 2030, 2360, 2730, 3170],
+  'legendary-corps':  [ 990, 1190, 1410, 1670, 1960, 2290, 2660, 3080, 3590],
+  'legendary-catsle': [1100, 1320, 1570, 1850, 2180, 2550, 2970, 3450, 4030],
 };
 export const MAX_CARD_LEVEL = 10;
 
@@ -106,9 +123,15 @@ export const STATUS_DAMAGE = {
 };
 
 export const SPECIAL_MOVES = {
-  bio:    { name: '野生の咆哮', emoji: '🌿', desc: '全敵1.8倍',    type: 'aoe',    mult: 1.8 },
-  arms:   { name: '一斉砲撃',   emoji: '💥', desc: '単体3倍',      type: 'single', mult: 3.0 },
-  armbio: { name: '武装突進',   emoji: '⚔️', desc: '2.5倍+炎上',  type: 'burn',   mult: 2.5 },
-  corps:  { name: '軍団突撃',   emoji: '👥', desc: '3体2倍',       type: 'multi',  mult: 2.0 },
-  catsle: { name: '王の裁き',   emoji: '👑', desc: '3倍+回復20',   type: 'heal',   mult: 3.0 },
+  bio:    { name: '野生の咆哮', emoji: '🌿', desc: '全敵1.8倍',       type: 'aoe',    mult: 1.8 },
+  arms:   { name: '一斉砲撃',   emoji: '💥', desc: '単体3倍',         type: 'single', mult: 3.0 },
+  armbio: { name: '武装突進',   emoji: '⚔️', desc: '2.5倍+炎上',     type: 'burn',   mult: 2.5 },
+  corps:  { name: '軍団突撃',   emoji: '👥', desc: '3体2倍',          type: 'multi',  mult: 2.0 },
+  catsle: { name: '王の裁き',   emoji: '👑', desc: '3倍+回復20',      type: 'heal',   mult: 3.0 },
+  // Legendary専用必殺技
+  'legendary-bio':    { name: '神話の咆哮',     emoji: '🐉', desc: '全敵2.8倍+毒',   type: 'aoe_poison', mult: 2.8 },
+  'legendary-arms':   { name: '天罰の一撃',     emoji: '⚡', desc: '単体5倍',         type: 'single',     mult: 5.0 },
+  'legendary-armbio': { name: '滅亡の突撃',     emoji: '🔥', desc: '3.5倍+全状態異常',type: 'burn',       mult: 3.5 },
+  'legendary-corps':  { name: '神話軍団降臨',   emoji: '🌊', desc: '全体3倍',         type: 'aoe',        mult: 3.0 },
+  'legendary-catsle': { name: '創世の審判',     emoji: '✨', desc: '4倍+回復40',      type: 'heal',       mult: 4.0 },
 };

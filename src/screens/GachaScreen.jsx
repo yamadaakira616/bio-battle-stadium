@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import Confetti from '../components/Confetti.jsx';
-import { rollGacha, rollGachaLegend, DUPLICATE_COINS, SERIES } from '../data/stickers.js';
+import { rollGacha, rollGachaLegend, isLegendaryConfirm, DUPLICATE_COINS, SERIES } from '../data/stickers.js';
 import { GACHA_COST } from '../utils/gameLogic.js';
 import { playGachaTick, playGachaSlowTick, playGachaReveal, playGachaFlash } from '../utils/sound.js';
 
@@ -22,11 +22,19 @@ const EFFECT_WEIGHTS = {
   'armbio': [72,  9,  9,  6,  4,  0,  0],  // 28% 演出あり
   'corps':  [38, 18, 20, 14,  8,  2,  0],  // 62% 演出あり
   'catsle': [ 8, 12, 18, 24, 20, 15,  3],  // 92% 演出あり（激レア）
+  // Legendary: 常にFX_LEGEND（確定演出）
+  'legendary-bio':    [0, 0, 0, 0, 0, 0, 0],
+  'legendary-arms':   [0, 0, 0, 0, 0, 0, 0],
+  'legendary-armbio': [0, 0, 0, 0, 0, 0, 0],
+  'legendary-corps':  [0, 0, 0, 0, 0, 0, 0],
+  'legendary-catsle': [0, 0, 0, 0, 0, 0, 0],
 };
 
 const REVEAL_SFX = {
   'bio': 'common', 'arms': 'rare', 'armbio': 'superRare',
   'corps': 'ultra', 'catsle': 'legend',
+  'legendary-bio': 'legend', 'legendary-arms': 'legend',
+  'legendary-armbio': 'legend', 'legendary-corps': 'legend', 'legendary-catsle': 'legend',
 };
 
 function weightedRandom(weights) {
@@ -54,9 +62,22 @@ const SERIES_COLORS = {
   'armbio': { bg:'#fff7ed', text:'#9a3412', glow:'rgba(234,88,12,0.7)',  flash:'#fed7aa' },
   'corps':  { bg:'#faf5ff', text:'#6b21a8', glow:'rgba(147,51,234,0.8)', flash:'#e9d5ff' },
   'catsle': { bg:'#fefce8', text:'#713f12', glow:'rgba(234,179,8,1)',    flash:'#fef08a' },
+  // Legendary: ゴールド×ピンクのグラデーション
+  'legendary-bio':    { bg:'linear-gradient(135deg,#fef9c3,#fce7f3)', text:'#7c3aed', glow:'rgba(255,215,0,0.9)', flash:'#fef08a' },
+  'legendary-arms':   { bg:'linear-gradient(135deg,#fef9c3,#fce7f3)', text:'#7c3aed', glow:'rgba(255,215,0,0.9)', flash:'#fef08a' },
+  'legendary-armbio': { bg:'linear-gradient(135deg,#fef9c3,#fce7f3)', text:'#7c3aed', glow:'rgba(255,215,0,0.9)', flash:'#fef08a' },
+  'legendary-corps':  { bg:'linear-gradient(135deg,#fef9c3,#fce7f3)', text:'#7c3aed', glow:'rgba(255,215,0,0.9)', flash:'#fef08a' },
+  'legendary-catsle': { bg:'linear-gradient(135deg,#fef9c3,#fce7f3)', text:'#7c3aed', glow:'rgba(255,215,0,0.9)', flash:'#fef08a' },
 };
 
-const SERIES_LABELS = Object.fromEntries(SERIES.map(s => [s.id, s.label]));
+const SERIES_LABELS = {
+  ...Object.fromEntries(SERIES.map(s => [s.id, s.label])),
+  'legendary-bio':    '✨ 伝説の生物',
+  'legendary-arms':   '✨ 伝説の武器',
+  'legendary-armbio': '✨ 伝説の武装生物',
+  'legendary-corps':  '✨ 伝説の軍団',
+  'legendary-catsle': '✨ 伝説の城主',
+};
 
 const SPIN_DURATION = {
   'bio': 1500, 'arms': 2200, 'armbio': 3200, 'corps': 4200, 'catsle': 5500,
@@ -114,14 +135,16 @@ export default function GachaScreen({ state, onBack, onPull }) {
   function handlePull() {
     if (!canPull || phase !== 'idle') return;
 
-    // 0.8%でLEGEND確定（城主確定）
-    const legend = Math.random() < 0.008;
-    const sticker = legend ? rollGachaLegend() : rollGacha();
-    const fx = legend ? FX_LEGEND : pickEffect(sticker.series);
+    // rollGacha()内で1%Legendary判定済み
+    // 0.5%でLegendary確定演出（isLegendaryConfirm）
+    const confirmLegendary = isLegendaryConfirm();
+    const sticker = confirmLegendary ? rollGachaLegend() : rollGacha();
+    const isLegendaryCard = sticker.legendary === true;
+    const fx = isLegendaryCard ? FX_LEGEND : pickEffect(sticker.series);
 
     setResult(sticker);
     setEffect(fx);
-    setIsLegend(legend);
+    setIsLegend(isLegendaryCard);
     setParticles([]);
     setShaking(false);
     setBeamOn(false);
@@ -130,7 +153,7 @@ export default function GachaScreen({ state, onBack, onPull }) {
     setCutinStep(0);
     setLegendStep(0);
 
-    if (legend) {
+    if (isLegendaryCard) {
       doLegend(sticker);
     } else if (fx === FX_CUTIN || fx === FX_COSMIC) {
       doCutin(sticker, fx);
@@ -139,15 +162,15 @@ export default function GachaScreen({ state, onBack, onPull }) {
     }
   }
 
-  // ===== LEGEND演出（暗転→金テキスト→カットイン→スピン→COSMIC） =====
+  // ===== LEGEND演出（暗転→花エフェクト→金テキスト→カットイン→COSMIC） =====
   function doLegend(sticker) {
     setPhase('legend');
     setLegendStep(0); // 暗転
     timerRef.current = setTimeout(() => {
-      setLegendStep(1); // テキスト出現
+      setLegendStep(1); // テキスト+花エフェクト出現
       timerRef.current = setTimeout(() => {
         doCutin(sticker, FX_LEGEND);
-      }, 2200);
+      }, 3000);
     }, 400);
   }
 
@@ -319,7 +342,7 @@ export default function GachaScreen({ state, onBack, onPull }) {
 
   // ===== 描画用データ =====
   const colors = result ? (SERIES_COLORS[result.series] ?? SERIES_COLORS.bio) : SERIES_COLORS.bio;
-  const isHighRare = result && ['armbio','corps','catsle'].includes(result.series);
+  const isHighRare = result && ['armbio','corps','catsle','legendary-bio','legendary-arms','legendary-armbio','legendary-corps','legendary-catsle'].includes(result.series);
 
   const bgColor = phase === 'result'
     ? `linear-gradient(180deg, ${colors.bg} 0%, #f8faff 100%)`
@@ -339,10 +362,46 @@ export default function GachaScreen({ state, onBack, onPull }) {
       style={{ background: bgColor, transition: 'background 0.8s ease' }}
     >
 
-      {/* ===== LEGEND 暗転演出 ===== */}
+      {/* ===== LEGENDARY 確定演出（花・豪華エフェクト） ===== */}
       {phase === 'legend' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center"
-             style={{ background: 'rgba(0,0,0,0.97)' }}>
+             style={{ background: 'radial-gradient(ellipse at center, #0a0020 0%, #000000 100%)' }}>
+
+          {/* 背景オーラ */}
+          {legendStep === 1 && (
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: 'radial-gradient(ellipse at 50% 50%, rgba(255,215,0,0.18) 0%, rgba(255,100,200,0.12) 40%, transparent 70%)',
+              animation: 'legendAuraPulse 1.5s ease-in-out infinite alternate',
+            }}/>
+          )}
+
+          {/* 花びら・スパークル シャワー */}
+          {legendStep === 1 && ['🌸','🌺','✨','💫','🌸','🌼','⭐','🌹','💐','🌷','✨','🌸','💫','🌺','🌼','🌸','⭐','🌹','✨','💐','🌷','🌸','💫','🌺','🌼','✨','⭐','🌸'].map((f, i) => (
+            <div key={i} style={{
+              position: 'absolute',
+              fontSize: `${1.0 + (i % 5) * 0.35}rem`,
+              left: `${(i * 13 + 3) % 92}%`,
+              top: `${(i * 17 + 8) % 85}%`,
+              animation: `legendPetal ${1.6 + (i % 5) * 0.35}s ease-in-out ${(i % 8) * 0.18}s infinite`,
+              pointerEvents: 'none',
+            }}>{f}</div>
+          ))}
+
+          {/* 光の柱 */}
+          {legendStep === 1 && [...Array(8)].map((_, i) => (
+            <div key={i} style={{
+              position: 'absolute',
+              width: 1.5, height: '70%',
+              background: `linear-gradient(180deg,transparent,${['gold','#ff69b4','#da70d6','gold','#87ceeb','gold','#ff69b4','gold'][i]},transparent)`,
+              left: `${8 + i * 12}%`,
+              top: '15%',
+              opacity: 0.6,
+              animation: `legendBeam ${1.4 + i * 0.15}s ease-in-out ${i * 0.2}s infinite alternate`,
+              transform: `rotate(${-10 + i * 3}deg)`,
+            }}/>
+          ))}
+
           {legendStep === 0 && (
             <div style={{ animation: 'legendFadeIn 0.5s ease forwards' }}>
               <div style={{ fontSize: '1.2rem', color: '#888', fontWeight: 700, textAlign: 'center', letterSpacing: '0.3em' }}>
@@ -350,43 +409,66 @@ export default function GachaScreen({ state, onBack, onPull }) {
               </div>
             </div>
           )}
+
           {legendStep === 1 && (
-            <div className="flex flex-col items-center gap-6"
-                 style={{ animation: 'legendTextIn 0.6s cubic-bezier(0.175,0.885,0.32,1.275) forwards' }}>
-              <div style={{ display: 'flex', gap: 12 }}>
-                {['✦','★','✦','★','✦'].map((s, i) => (
+            <div className="flex flex-col items-center gap-5" style={{ position: 'relative', zIndex: 10,
+              animation: 'legendTextIn 0.7s cubic-bezier(0.175,0.885,0.32,1.275) forwards' }}>
+              {/* 上段デコ */}
+              <div style={{ display: 'flex', gap: 10 }}>
+                {['🌸','✨','🌺','💫','🌼','✨','🌸'].map((s, i) => (
                   <span key={i} style={{
-                    fontSize: '1.4rem', color: 'gold',
-                    filter: 'drop-shadow(0 0 8px gold)',
-                    animation: `legendStar 0.8s ease ${i * 0.1}s infinite alternate`,
+                    fontSize: '1.5rem',
+                    filter: 'drop-shadow(0 0 6px rgba(255,215,0,0.9))',
+                    animation: `legendStar 0.7s ease ${i * 0.08}s infinite alternate`,
                   }}>{s}</span>
                 ))}
               </div>
+
+              {/* メインテキスト */}
               <div style={{
-                fontSize: '3.5rem', fontWeight: 900, color: 'gold',
-                textShadow: '0 0 20px gold, 0 0 60px gold, 0 0 120px rgba(255,200,0,0.5)',
-                letterSpacing: '0.12em',
-                WebkitTextStroke: '1px #ff8c00',
-                animation: 'legendGlow 1s ease-in-out infinite alternate',
-              }}>LEGEND</div>
+                fontSize: '3.8rem', fontWeight: 900, letterSpacing: '0.12em',
+                background: 'linear-gradient(135deg, #FFD700 0%, #FF69B4 35%, #DA70D6 65%, #FFD700 100%)',
+                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                filter: 'drop-shadow(0 0 16px rgba(255,215,0,0.9))',
+                animation: 'legendGlow 0.9s ease-in-out infinite alternate',
+              }}>✨ LEGENDARY ✨</div>
+
               <div style={{
-                fontSize: '1rem', color: '#fbbf24', fontWeight: 700,
-                letterSpacing: '0.2em',
-                animation: 'legendPulse 0.7s ease-in-out infinite',
-              }}>★ 城主確定 ★</div>
-              {[...Array(6)].map((_, i) => (
-                <div key={i} style={{
-                  position: 'absolute',
-                  width: 2, height: 60,
-                  background: 'linear-gradient(180deg,transparent,gold,transparent)',
-                  left: `${10 + i * 16}%`,
-                  top: '-10%',
-                  animation: `legendStar2 ${1.2 + i * 0.2}s linear ${i * 0.3}s infinite`,
-                  transform: 'rotate(15deg)',
-                }}/>
-              ))}
+                fontSize: '1.1rem', fontWeight: 800, letterSpacing: '0.25em',
+                background: 'linear-gradient(90deg, #FFD700, #FF69B4, #DA70D6, #FFD700)',
+                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                animation: 'legendPulse 0.6s ease-in-out infinite',
+              }}>🌸 伝説のカード降臨 🌸</div>
+
+              {/* 下段デコ */}
+              <div style={{ display: 'flex', gap: 10 }}>
+                {['💐','⭐','🌹','✨','🌷','⭐','💐'].map((s, i) => (
+                  <span key={i} style={{
+                    fontSize: '1.3rem',
+                    filter: 'drop-shadow(0 0 5px rgba(255,150,200,0.8))',
+                    animation: `legendStar 0.9s ease ${i * 0.1}s infinite alternate`,
+                  }}>{s}</span>
+                ))}
+              </div>
             </div>
           )}
+
+          <style>{`
+            @keyframes legendAuraPulse {
+              0%   { opacity: 0.5; transform: scale(0.95); }
+              100% { opacity: 1;   transform: scale(1.08); }
+            }
+            @keyframes legendPetal {
+              0%   { opacity: 0;   transform: translateY(30px) rotate(0deg) scale(0.5); }
+              25%  { opacity: 1;   transform: translateY(-15px) rotate(120deg) scale(1.1); }
+              75%  { opacity: 0.8; transform: translateY(-60px) rotate(300deg) scale(1.0); }
+              100% { opacity: 0;   transform: translateY(-100px) rotate(450deg) scale(0.4); }
+            }
+            @keyframes legendBeam {
+              0%   { opacity: 0.2; transform: scaleY(0.8) rotate(var(--r, 0deg)); }
+              100% { opacity: 0.7; transform: scaleY(1.1) rotate(var(--r, 0deg)); }
+            }
+          `}</style>
         </div>
       )}
 
@@ -697,17 +779,20 @@ export default function GachaScreen({ state, onBack, onPull }) {
       {phase === 'result' && result && (
         <div className="flex flex-col items-center flex-1 gap-4 px-4 pt-2 pb-6 z-10 w-full max-w-sm mx-auto">
 
-          {/* LEGENDバナー */}
+          {/* LEGENDARYバナー */}
           {isLegend && (
             <div className="w-full text-center py-2 rounded-2xl font-black text-lg"
                  style={{
-                   background: 'linear-gradient(135deg,#1a0040,#3d0080)',
-                   color: 'gold',
-                   boxShadow: '0 0 20px rgba(255,215,0,0.5)',
+                   background: 'linear-gradient(135deg,#0a0020,#3d0060,#0a0020)',
+                   border: '2px solid gold',
+                   boxShadow: '0 0 24px rgba(255,215,0,0.7), 0 0 8px rgba(255,100,200,0.5)',
                    letterSpacing: '0.1em',
                    animation: 'scaleInAnim 0.4s cubic-bezier(0.175,0.885,0.32,1.275)',
                  }}>
-              👑 LEGEND PULL 👑
+              <span style={{
+                background: 'linear-gradient(135deg,#FFD700,#FF69B4,#DA70D6,#FFD700)',
+                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+              }}>🌸 LEGENDARY 🌸</span>
             </div>
           )}
 

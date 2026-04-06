@@ -107,7 +107,7 @@ export function calcPlayReward(correctCount, playCount = 0, isMaxLevel = false, 
   const rawBaseMax = isMaxLevel ? 300 : Math.max(50, Math.round(300 / Math.pow(2, effectivePlayCount)));
   const baseMax = level >= 35 ? 400 : rawBaseMax;
   const base = Math.round((correctCount / QUESTIONS_PER_LEVEL) * baseMax);
-  const multiplier = level >= 33 ? 2 : 1;
+  const multiplier = level >= 33 || level === 15 ? 2 : 1;
   return Math.min(base * multiplier, MAX_COINS_PER_PLAY);
 }
 
