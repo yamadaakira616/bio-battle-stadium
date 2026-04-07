@@ -18,12 +18,12 @@ const SERIES_STATS = {
   armbio: { hp:[95,145],  atk:[85,125],  def:[55,95],  spd:[45,85]  },
   corps:  { hp:[115,165], atk:[65,100],  def:[75,115], spd:[35,70]  },
   catsle: { hp:[145,205], atk:[95,145],  def:[95,145], spd:[25,60]  },
-  // Legendary: 通常シリーズの平均比で約120%高いステータス
-  'legendary-bio':    { hp:[176,286],  atk:[99,176],  def:[77,154], spd:[121,209] },
-  'legendary-arms':   { hp:[121,198],  atk:[165,253], def:[99,176], spd:[143,231] },
-  'legendary-armbio': { hp:[209,319],  atk:[187,275], def:[121,209],spd:[99,187]  },
-  'legendary-corps':  { hp:[253,363],  atk:[143,220], def:[165,253],spd:[77,154]  },
-  'legendary-catsle': { hp:[319,451],  atk:[209,319], def:[209,319],spd:[55,132]  },
+  // Legendary: 通常シリーズの1.2倍
+  'legendary-bio':    { hp:[96,156],   atk:[54,96],   def:[42,84],  spd:[66,114]  },
+  'legendary-arms':   { hp:[66,108],   atk:[90,138],  def:[54,96],  spd:[78,126]  },
+  'legendary-armbio': { hp:[114,174],  atk:[102,150], def:[66,114], spd:[54,102]  },
+  'legendary-corps':  { hp:[138,198],  atk:[78,120],  def:[90,138], spd:[42,84]   },
+  'legendary-catsle': { hp:[174,246],  atk:[114,174], def:[114,174],spd:[30,72]   },
 };
 
 const SP_DMG_MULT = {
