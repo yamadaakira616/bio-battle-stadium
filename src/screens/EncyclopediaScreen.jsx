@@ -41,10 +41,9 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
     if (detail) closeButtonRef.current?.focus();
   }, [detail]);
 
-  const isLegendaryTab = tab === 'legendary';
-  const stickers = isLegendaryTab
+  const stickers = tab === 'legendary'
     ? STICKERS.filter(s => s.legendary === true)
-    : STICKERS.filter(s => s.series === tab);
+    : STICKERS.filter(s => s.series === tab || s.series === `legendary-${tab}`);
   const owned = id => state.collection.includes(id);
 
   return (
@@ -73,10 +72,10 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
           const isActive = tab === s.id;
           const ownedCount = s.id === 'legendary'
             ? STICKERS.filter(st => st.legendary && owned(st.id)).length
-            : STICKERS.filter(st => st.series === s.id && owned(st.id)).length;
+            : STICKERS.filter(st => (st.series === s.id || st.series === `legendary-${s.id}`) && owned(st.id)).length;
           const totalCount = s.id === 'legendary'
             ? STICKERS.filter(st => st.legendary).length
-            : STICKERS.filter(st => st.series === s.id).length;
+            : STICKERS.filter(st => st.series === s.id || st.series === `legendary-${s.id}`).length;
           return (
             <button
               key={s.id}
@@ -104,6 +103,7 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
           {stickers.map(sticker => {
             const isOwned = owned(sticker.id);
             const seriesColor = SERIES_COLORS[sticker.series] || '#64748b';
+            const isLegendary = sticker.legendary === true;
             const cardLevel = state.cardLevels?.[sticker.id] || 1;
 
             const cardEl = isOwned ? (
@@ -112,9 +112,10 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
                 onClick={() => setDetail(sticker)}
                 className="rounded-2xl overflow-hidden active:scale-95 transition-transform"
                 style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  border: `1px solid ${seriesColor}25`,
+                  background: isLegendary ? 'rgba(255,215,0,0.05)' : 'rgba(255,255,255,0.03)',
+                  border: isLegendary ? '1px solid rgba(255,215,0,0.4)' : `1px solid ${seriesColor}25`,
                   aspectRatio: '1',
+                  boxShadow: isLegendary ? '0 0 8px rgba(255,215,0,0.15)' : 'none',
                 }}
               >
                 <div className="flex flex-col items-center p-2 h-full relative">

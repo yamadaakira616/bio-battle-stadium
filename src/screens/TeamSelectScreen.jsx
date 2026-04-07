@@ -30,10 +30,16 @@ const stickerMap = Object.fromEntries(STICKERS.map(s => [s.id, s]));
 export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
   const lastTeam = state.battleProgress?.teamIds || [];
 
+  function getOwnedForSlot(series) {
+    return STICKERS.filter(s =>
+      (s.series === series || s.series === `legendary-${series}`) && state.collection.includes(s.id)
+    );
+  }
+
   function getInitialSelection() {
     const sel = {};
     SERIES_ORDER.forEach((series, idx) => {
-      const owned = STICKERS.filter(s => s.series === series && state.collection.includes(s.id));
+      const owned = getOwnedForSlot(series);
       const lastCard = lastTeam[idx] ? stickerMap[lastTeam[idx]] : null;
       const validLast = lastCard && owned.find(c => c.id === lastCard.id);
       sel[series] = validLast ? lastCard.id : (owned[0]?.id || STARTERS[series]);
@@ -52,7 +58,10 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
     onConfirm(teamIds);
   }
 
-  const missingCount = SERIES_ORDER.filter(s => !state.collection.some(id => STICKERS.find(c => c.id === id && c.series === s))).length;
+  const missingCount = SERIES_ORDER.filter(s => !state.collection.some(id => {
+    const c = STICKERS.find(cc => cc.id === id);
+    return c && (c.series === s || c.series === `legendary-${s}`);
+  })).length;
 
   return (
     <div
@@ -103,7 +112,7 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
       {/* Series Sections */}
       <div className="flex-1 overflow-y-auto px-4 pb-8 flex flex-col gap-3">
         {SERIES_ORDER.map(series => {
-          const owned = STICKERS.filter(s => s.series === series && state.collection.includes(s.id));
+          const owned = getOwnedForSlot(series);
           const selectedId = selections[series];
           const selectedCard = selectedId ? stickerMap[selectedId] : null;
           const selectedStats = selectedCard ? getCardStats(selectedCard, 1.0) : null;
@@ -163,13 +172,16 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
                       onClick={() => select(series, card.id)}
                       className="flex-shrink-0 flex flex-col items-center gap-1 rounded-xl p-2 transition-all active:scale-95"
                       style={{
-                        background: isSelected ? `${color}15` : 'rgba(255,255,255,0.02)',
-                        border: isSelected ? `2px solid ${color}88` : '2px solid transparent',
+                        background: isSelected ? (card.legendary ? 'rgba(255,215,0,0.12)' : `${color}15`) : 'rgba(255,255,255,0.02)',
+                        border: isSelected ? `2px solid ${card.legendary ? '#FFD700' : color}88` : `2px solid ${card.legendary ? 'rgba(255,215,0,0.25)' : 'transparent'}`,
                         minWidth: 72,
                       }}
                     >
-                      <div className="w-14 h-14 rounded-xl overflow-hidden" style={{ background: 'rgba(0,0,0,0.25)' }}>
+                      <div className="w-14 h-14 rounded-xl overflow-hidden relative" style={{ background: 'rgba(0,0,0,0.25)' }}>
                         <img src={card.imagePath} alt={card.name} className="w-full h-full object-contain" />
+                        {card.legendary && (
+                          <div style={{ position:'absolute', bottom:1, right:1, fontSize:7, fontWeight:900, background:'#FFD700', color:'#000', borderRadius:3, padding:'1px 3px', lineHeight:1.2 }}>✨</div>
+                        )}
                       </div>
                       <div style={{
                         fontSize: 10, fontWeight: 700, textAlign: 'center', lineHeight: 1.2,
