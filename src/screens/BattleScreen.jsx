@@ -482,7 +482,7 @@ export default function BattleScreen({ state, nation, teamCardIds, cardLevels = 
           {nation.emoji} {nation.name}
         </div>
         <div style={{ color: '#94a3b8', fontSize: 14, marginTop: 4 }}>
-          難易度 {'★'.repeat(nation.difficulty)}{'☆'.repeat(8 - nation.difficulty)}
+          難易度 {'★'.repeat(Math.min(nation.difficulty, 13))}{'☆'.repeat(Math.max(0, 13 - nation.difficulty))}
         </div>
       </div>
     );
