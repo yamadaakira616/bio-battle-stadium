@@ -7,7 +7,8 @@ const KEY = 'sticker-book-v1';
 const DEFAULT_STATE = {
   level: 1,
   coins: 500,
-  collection: [],
+  collection: {},           // 変更: [] → {}
+  fusionCollection: [],     // 追加
   levelStars: {},
   totalStars: 0,
   bestCombo: 0,
@@ -38,11 +39,25 @@ export function useGameState() {
         ? parsed.level : DEFAULT_STATE.level;
       const coins = (typeof parsed.coins === 'number' && parsed.coins >= 0)
         ? parsed.coins : DEFAULT_STATE.coins;
-      const collection = Array.isArray(parsed.collection)
-        ? parsed.collection : DEFAULT_STATE.collection;
+      // 旧配列 → マップへ自動移行
+      let collection;
+      if (Array.isArray(parsed.collection)) {
+        collection = {};
+        for (const id of parsed.collection) {
+          collection[id] = (collection[id] || 0) + 1;
+        }
+      } else if (parsed.collection && typeof parsed.collection === 'object') {
+        collection = parsed.collection;
+      } else {
+        collection = DEFAULT_STATE.collection;
+      }
+
+      const fusionCollection = Array.isArray(parsed.fusionCollection)
+        ? parsed.fusionCollection : DEFAULT_STATE.fusionCollection;
+
       const bookPages = Array.isArray(parsed.bookPages) && parsed.bookPages.length === 5
         ? parsed.bookPages : DEFAULT_STATE.bookPages;
-      return { ...DEFAULT_STATE, ...parsed, level, coins, collection, bookPages };
+      return { ...DEFAULT_STATE, ...parsed, level, coins, collection, fusionCollection, bookPages };
     } catch { return DEFAULT_STATE; }
   });
 
@@ -94,19 +109,21 @@ export function useGameState() {
   function pullGacha(sticker) {
     pullGachaResultRef.current = null;
     setState(s => {
-      const isNew = !s.collection.includes(sticker.id);
+      const isNew = !(sticker.id in s.collection);
+      const newCount = (s.collection[sticker.id] || 0) + 1;
       if (isNew) {
         pullGachaResultRef.current = { isNew: true, coinBonus: 0 };
         return {
           ...s,
           coins: Math.max(0, s.coins - GACHA_COST),
-          collection: [...s.collection, sticker.id],
+          collection: { ...s.collection, [sticker.id]: 1 },
         };
       } else {
         pullGachaResultRef.current = { isNew: false, coinBonus: DUPLICATE_COINS };
         return {
           ...s,
           coins: Math.max(0, s.coins - GACHA_COST) + DUPLICATE_COINS,
+          collection: { ...s.collection, [sticker.id]: newCount },
         };
       }
     });
@@ -135,10 +152,10 @@ export function useGameState() {
   }
 
   function addCardToCollection(cardId) {
-    setState(s => {
-      if (s.collection.includes(cardId)) return s;
-      return { ...s, collection: [...s.collection, cardId] };
-    });
+    setState(s => ({
+      ...s,
+      collection: { ...s.collection, [cardId]: (s.collection[cardId] || 0) + 1 },
+    }));
   }
 
   function upgradeCard(cardId, series) {
