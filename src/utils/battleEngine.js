@@ -18,6 +18,7 @@ const SERIES_STATS = {
   armbio: { hp:[95,145],  atk:[85,125],  def:[55,95],  spd:[45,85]  },
   corps:  { hp:[115,165], atk:[65,100],  def:[75,115], spd:[35,70]  },
   catsle: { hp:[145,205], atk:[95,145],  def:[95,145], spd:[25,60]  },
+  fusion: { hp:[104,169], atk:[59,104], def:[46,91],  spd:[72,124] },
   // Legendary: 通常シリーズの1.2倍
   'legendary-bio':    { hp:[96,156],   atk:[54,96],   def:[42,84],  spd:[66,114]  },
   'legendary-arms':   { hp:[66,108],   atk:[90,138],  def:[54,96],  spd:[78,126]  },
@@ -32,6 +33,7 @@ const SP_DMG_MULT = {
   armbio: 2.0,
   corps: 1.8,
   catsle: 2.2,
+  fusion: 2.0,
   'legendary-bio':    2.0,
   'legendary-arms':   3.2,
   'legendary-armbio': 2.8,
@@ -48,6 +50,7 @@ export const LEVEL_UP_COSTS = {
   armbio: [400, 480, 570, 670, 790,  920, 1070, 1240, 1440], // 計 7580コイン
   corps:  [450, 540, 640, 760, 890, 1040, 1210, 1400, 1630], // 計 8560コイン
   catsle: [500, 600, 710, 840, 990, 1160, 1350, 1570, 1830], // 計 9550コイン
+  fusion: [360, 430, 510, 610, 720, 840, 970, 1130, 1310],
   // Legendary: 通常の約2倍コスト
   'legendary-bio':    [ 660,  790,  950, 1120, 1320, 1540, 1790, 2070, 2400],
   'legendary-arms':   [ 770,  920, 1100, 1300, 1520, 1780, 2070, 2400, 2800],
@@ -128,6 +131,7 @@ export const SPECIAL_MOVES = {
   armbio: { name: '武装突進',   emoji: '⚔️', desc: '2.5倍+炎上',     type: 'burn',   mult: 2.5 },
   corps:  { name: '軍団突撃',   emoji: '👥', desc: '3体2倍',          type: 'multi',  mult: 2.0 },
   catsle: { name: '王の裁き',   emoji: '👑', desc: '3倍+回復20',      type: 'heal',   mult: 3.0 },
+  fusion: { name: '融合の咆哮', emoji: '🧬', desc: '全敵2.0倍+状態異常', type: 'aoe', mult: 2.0 },
   // Legendary専用必殺技
   'legendary-bio':    { name: '神話の咆哮',     emoji: '🐉', desc: '全敵2.8倍+毒',   type: 'aoe_poison', mult: 2.8 },
   'legendary-arms':   { name: '天罰の一撃',     emoji: '⚡', desc: '単体5倍',         type: 'single',     mult: 5.0 },
