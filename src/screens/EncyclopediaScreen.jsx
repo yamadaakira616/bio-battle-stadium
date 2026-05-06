@@ -44,7 +44,7 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
   const stickers = tab === 'legendary'
     ? STICKERS.filter(s => s.legendary === true)
     : STICKERS.filter(s => s.series === tab || s.series === `legendary-${tab}`);
-  const owned = id => state.collection.includes(id);
+  const owned = id => id in (state.collection || {});
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#080c16', color: '#fff' }}>
@@ -57,7 +57,7 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
         <button onClick={onBack} aria-label="もどる" className="text-xl" style={{ color: '#64748b' }}>←</button>
         <h2 className="text-lg font-black" style={{ color: '#e2e8f0' }}>カード図鑑</h2>
         <span className="ml-auto" style={{ fontSize: 12, color: '#475569' }}>
-          {state.collection.length}/{STICKERS.length}
+          {Object.keys(state.collection || {}).length}/{STICKERS.length}
         </span>
         <div className="flex items-center gap-1 px-2.5 py-1 rounded-full" style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.15)' }}>
           <span style={{ fontSize: 12 }}>🪙</span>

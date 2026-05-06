@@ -32,7 +32,7 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
 
   function getOwnedForSlot(series) {
     return STICKERS.filter(s =>
-      (s.series === series || s.series === `legendary-${series}`) && state.collection.includes(s.id)
+      (s.series === series || s.series === `legendary-${series}`) && (s.id in (state.collection || {}))
     );
   }
 
@@ -58,7 +58,7 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
     onConfirm(teamIds);
   }
 
-  const missingCount = SERIES_ORDER.filter(s => !state.collection.some(id => {
+  const missingCount = SERIES_ORDER.filter(s => !Object.keys(state.collection || {}).some(id => {
     const c = STICKERS.find(cc => cc.id === id);
     return c && (c.series === s || c.series === `legendary-${s}`);
   })).length;
@@ -89,7 +89,7 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
             const cardId = selections[series];
             const card = cardId ? stickerMap[cardId] : null;
             const color = SERIES_COLORS[series];
-            const isOwned = card && state.collection.includes(card.id);
+            const isOwned = card && (card.id in (state.collection || {}));
             return (
               <div key={series} className="flex-1 flex flex-col items-center gap-1">
                 <div

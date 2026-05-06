@@ -22,7 +22,7 @@ const SHOWCASE = [
 ];
 
 export default function HomeScreen({ state, onPlay, onEncyclopedia, onGacha, onBattle }) {
-  const owned = state.collection.length;
+  const owned = Object.keys(state.collection || {}).length;
   const total = STICKERS.length;
   const pct = Math.round((owned / total) * 100);
   const conquered = state.battleProgress?.conquered?.length ?? 0;

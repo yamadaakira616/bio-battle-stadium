@@ -444,12 +444,12 @@ export default function StickerBookPage({ pageIndex, placed, collection, onUpdat
         flexShrink: 0,
         minHeight: 72,
       }}>
-        {collection.length === 0 ? (
+        {Object.keys(collection || {}).length === 0 ? (
           <div style={{ color: '#9ca3af', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
             ガチャでシールを集めよう！
           </div>
         ) : (
-          collection.map((id, idx) => {
+          Object.keys(collection || {}).map((id, idx) => {
             const sticker = stickerMap[id];
             if (!sticker) return null;
             const isPicked = pickedStickerId === id;

@@ -80,7 +80,7 @@ export default function BattleScreen({ state, nation, teamCardIds, cardLevels = 
   useEffect(() => {
     const playerCards = teamCardIds.map(id => stickerMap[id]).filter(Boolean);
     const enemyCards = nation.team;
-    const owned = new Set(state.collection || []);
+    const owned = new Set(Object.keys(state.collection || {}));
 
     // 未所持のスターターカードは0.5倍の弱体化ペナルティ
     const playerTeam = playerCards.map((card, i) => {
@@ -654,7 +654,7 @@ export default function BattleScreen({ state, nation, teamCardIds, cardLevels = 
         size: 6 + Math.random() * 8,
       }))
     );
-    const owned = new Set(state.collection || []);
+    const owned = new Set(Object.keys(state.collection || {}));
     const isFirstClear = !(state.battleProgress?.conquered || []).includes(nation.id);
     const allowedSeries = new Set(nation.rewardSeries || ['bio', 'arms', 'armbio', 'corps', 'catsle']);
     const rewardableCards = nation.team.filter(c => allowedSeries.has(c.series));
