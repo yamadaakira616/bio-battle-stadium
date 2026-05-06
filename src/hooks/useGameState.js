@@ -110,32 +110,41 @@ export function useGameState() {
   const attemptFusionResultRef = useRef(null);
 
   function attemptFusion(cardId1, cardId2) {
+    // StrictMode 安全のため乱数は setState の外で事前計算
     const success = Math.random() < 0.1;
     const fusionCard = success ? FUSIONS[Math.floor(Math.random() * FUSIONS.length)] : null;
-    const result = success ? { success: true, fusionCard } : { success: false };
-    attemptFusionResultRef.current = result;
+
+    // カード検証を setState の外で行い、不足時は即 null を返す
+    const col = state.collection;
+    if ((col[cardId1] || 0) < 1) return null;
+    // cardId1 === cardId2 の場合は2枚必要
+    const neededCard2 = cardId1 === cardId2 ? 2 : 1;
+    if ((col[cardId2] || 0) < neededCard2) return null;
+
+    // カード検証が通った場合のみ setState を呼び出す
+    attemptFusionResultRef.current = success
+      ? { success: true, fusionCard }
+      : { success: false };
 
     setState(s => {
-      const col = { ...s.collection };
+      const c = { ...s.collection };
 
       // カード1を1枚消費
-      if ((col[cardId1] || 0) < 1) return s;
-      col[cardId1] -= 1;
-      if (col[cardId1] <= 0) delete col[cardId1];
+      c[cardId1] = (c[cardId1] || 0) - 1;
+      if (c[cardId1] <= 0) delete c[cardId1];
 
-      // カード2を1枚消費（cardId1 === cardId2 の場合も正しく動作）
-      if ((col[cardId2] || 0) < 1) return s;
-      col[cardId2] -= 1;
-      if (col[cardId2] <= 0) delete col[cardId2];
+      // カード2を1枚消費
+      c[cardId2] = (c[cardId2] || 0) - 1;
+      if (c[cardId2] <= 0) delete c[cardId2];
 
       if (success) {
         return {
           ...s,
-          collection: col,
+          collection: c,
           fusionCollection: [...(s.fusionCollection || []), fusionCard.id],
         };
       }
-      return { ...s, collection: col };
+      return { ...s, collection: c };
     });
     return attemptFusionResultRef.current;
   }

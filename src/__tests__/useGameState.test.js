@@ -150,15 +150,23 @@ describe('attemptFusion', () => {
   });
 
   it('カードが足りない場合は何も変わらない', () => {
+    const origRandom = Math.random;
+    Math.random = () => 0.05; // success になる値でバグを露出させる
+
     const { result } = renderHook(() => useGameState());
     act(() => {
       result.current.addCardToCollection('bio-african-lion'); // 1枚だけ
     });
 
+    let fusionResult;
     act(() => {
-      result.current.attemptFusion('bio-african-lion', 'bio-african-lion'); // 2枚必要
+      fusionResult = result.current.attemptFusion('bio-african-lion', 'bio-african-lion'); // 2枚必要
     });
 
     expect(result.current.state.collection['bio-african-lion']).toBe(1); // 消費されない
+    expect(result.current.state.fusionCollection).toHaveLength(0);        // 追加されない
+    expect(fusionResult).toBeNull();                                       // 結果は null
+
+    Math.random = origRandom;
   });
 });
