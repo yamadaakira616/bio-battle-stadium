@@ -305,7 +305,7 @@ function FusionTabContent({ fusionCollection }) {
   return (
     <div>
       <div className="text-center text-xs mb-4 px-4" style={{ color: '#64748b' }}>
-        融合工房で入手できる特別キャラ（{fusionCollection.length}/{FUSIONS.length}体）
+        融合工房で入手できる特別キャラ（{new Set(fusionCollection).size}/{FUSIONS.length}体）
       </div>
       <div className="grid gap-2 px-3" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
         {FUSIONS.map(f => {

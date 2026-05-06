@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { STICKERS, SERIES, rollGacha, DUPLICATE_COINS } from '../data/stickers.js';
 
 describe('STICKERS', () => {
-  it('72種類のシールがある', () => {
-    expect(STICKERS).toHaveLength(72);
+  it('156種類のシールがある', () => {
+    expect(STICKERS).toHaveLength(156);
   });
 
   it('すべてのシールにid・name・series・imagePathがある', () => {
@@ -21,11 +21,16 @@ describe('STICKERS', () => {
   });
 
   it('シリーズ別の枚数が正しい', () => {
-    expect(STICKERS.filter(s => s.series === 'normal').length).toBe(32);
-    expect(STICKERS.filter(s => s.series === 'bonbon-drop').length).toBe(16);
-    expect(STICKERS.filter(s => s.series === 'marshmallow').length).toBe(8);
-    expect(STICKERS.filter(s => s.series === 'shaka-shaka').length).toBe(8);
-    expect(STICKERS.filter(s => s.series === 'water-seal').length).toBe(8);
+    expect(STICKERS.filter(s => s.series === 'bio').length).toBe(44);
+    expect(STICKERS.filter(s => s.series === 'arms').length).toBe(32);
+    expect(STICKERS.filter(s => s.series === 'armbio').length).toBe(24);
+    expect(STICKERS.filter(s => s.series === 'corps').length).toBe(24);
+    expect(STICKERS.filter(s => s.series === 'catsle').length).toBe(12);
+    expect(STICKERS.filter(s => s.series === 'legendary-bio').length).toBe(4);
+    expect(STICKERS.filter(s => s.series === 'legendary-arms').length).toBe(4);
+    expect(STICKERS.filter(s => s.series === 'legendary-armbio').length).toBe(4);
+    expect(STICKERS.filter(s => s.series === 'legendary-corps').length).toBe(4);
+    expect(STICKERS.filter(s => s.series === 'legendary-catsle').length).toBe(4);
   });
 });
 
@@ -35,9 +40,16 @@ describe('rollGacha', () => {
     expect(STICKERS).toContainEqual(result);
   });
 
-  it('1000回試行してすべてのシリーズが出る', () => {
+  it('1000回試行して通常5シリーズがすべて出る', () => {
     const seen = new Set();
     for (let i = 0; i < 1000; i++) seen.add(rollGacha().series);
-    expect(seen.size).toBe(5);
+    // 通常シリーズ（bio/arms/armbio/corps/catsle）はすべて出る
+    expect(seen.has('bio')).toBe(true);
+    expect(seen.has('arms')).toBe(true);
+    expect(seen.has('armbio')).toBe(true);
+    expect(seen.has('corps')).toBe(true);
+    expect(seen.has('catsle')).toBe(true);
+    // Legendary（1%）も含め、合計6種以上のシリーズが出る
+    expect(seen.size).toBeGreaterThanOrEqual(6);
   });
 });

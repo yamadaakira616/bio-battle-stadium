@@ -27,6 +27,12 @@ export default function FusionScreen({ state, onBack, onAttemptFusion }) {
 
   function handleCardClick(cardId) {
     if (animPhase) return;
+    // 選択済みなら解除
+    const idx = selected.indexOf(cardId);
+    if (idx !== -1) {
+      setSelected(s => s.filter((_, i) => i !== idx));
+      return;
+    }
     if (selected.length === 2) return;
     if (!canSelect(cardId)) return;
     setSelected(s => [...s, cardId]);
@@ -63,9 +69,12 @@ export default function FusionScreen({ state, onBack, onAttemptFusion }) {
         setShowConfetti(true);
         schedule(() => setShowConfetti(false), 3000);
         schedule(() => setAnimPhase('done'), 4500);
-      } else {
+      } else if (result && !result.success) {
         setAnimPhase('fail');
         schedule(() => setAnimPhase('done'), 3000);
+      } else {
+        // result === null: カードが不足していた（想定外の状態）
+        setAnimPhase('done');
       }
     }, 2000);
   }
