@@ -8,6 +8,7 @@ import EncyclopediaScreen from './screens/EncyclopediaScreen.jsx';
 import BattleMapScreen from './screens/BattleMapScreen.jsx';
 import TeamSelectScreen from './screens/TeamSelectScreen.jsx';
 import BattleScreen from './screens/BattleScreen.jsx';
+import FusionScreen from './screens/FusionScreen.jsx';
 
 const SCREEN = {
   HOME: 'HOME',
@@ -18,6 +19,7 @@ const SCREEN = {
   BATTLE_MAP: 'BATTLE_MAP',
   TEAM_SELECT: 'TEAM_SELECT',
   BATTLE: 'BATTLE',
+  FUSION: 'FUSION',
 };
 
 export default function App() {
@@ -31,6 +33,7 @@ export default function App() {
     state, addCoins, spendCoins, levelUp, saveStars,
     updateBestCombo, incLevelPlayCount, pullGacha, updateBookPage,
     updateBattleProgress, saveBattleTeam, upgradeCard, addCardToCollection,
+    attemptFusion,
   } = useGameState();
 
   if (screen === SCREEN.HOME) return (
@@ -40,6 +43,7 @@ export default function App() {
       onEncyclopedia={() => setScreen(SCREEN.ENCYCLOPEDIA)}
       onGacha={() => setScreen(SCREEN.GACHA)}
       onBattle={() => setScreen(SCREEN.BATTLE_MAP)}
+      onFusion={() => setScreen(SCREEN.FUSION)}
     />
   );
 
@@ -123,6 +127,14 @@ export default function App() {
         else if (action === 'changeTeam') setScreen(SCREEN.TEAM_SELECT);
         else setScreen(SCREEN.BATTLE_MAP);
       }}
+    />
+  );
+
+  if (screen === SCREEN.FUSION) return (
+    <FusionScreen
+      state={state}
+      onBack={() => setScreen(SCREEN.HOME)}
+      onAttemptFusion={attemptFusion}
     />
   );
 

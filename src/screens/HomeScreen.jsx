@@ -21,7 +21,7 @@ const SHOWCASE = [
   { src: B+'assets/gacha/bio/african-lion.png',              x: '44%', y: '46%', size: 52, rotate:  3,  delay: '1.6s', z: 4  },
 ];
 
-export default function HomeScreen({ state, onPlay, onEncyclopedia, onGacha, onBattle }) {
+export default function HomeScreen({ state, onPlay, onEncyclopedia, onGacha, onBattle, onFusion }) {
   const owned = Object.keys(state.collection || {}).length;
   const total = STICKERS.length;
   const pct = Math.round((owned / total) * 100);
@@ -248,6 +248,19 @@ export default function HomeScreen({ state, onPlay, onEncyclopedia, onGacha, onB
         >
           カード図鑑
           <span className="ml-2 text-xs opacity-60">{owned}/{total}枚</span>
+        </button>
+
+        {/* Fusion */}
+        <button
+          onClick={onFusion}
+          className="game-btn w-full py-3 rounded-2xl font-black text-sm"
+          style={{
+            background: 'linear-gradient(135deg, rgba(124,58,237,0.15), rgba(79,70,229,0.15))',
+            border: '1px solid rgba(124,58,237,0.3)',
+            color: '#a78bfa',
+          }}
+        >
+          ⚗️ 融合工房
         </button>
       </div>
     </div>
