@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { STICKERS, SERIES } from '../data/stickers.js';
+import { FUSIONS } from '../data/fusions.js';
 import { getCardStats, getLevelUpCost, MAX_CARD_LEVEL } from '../utils/battleEngine.js';
 
+const FUSION_TAB   = { id: 'fusion',    label: '🧬 融合' };
 const LEGENDARY_TAB = { id: 'legendary', label: '✨ 伝説' };
-const ALL_TABS = [...SERIES, LEGENDARY_TAB];
+const ALL_TABS = [...SERIES, LEGENDARY_TAB, FUSION_TAB];
 
 const SERIES_COLORS = {
   'bio':              '#22c55e',
@@ -41,9 +43,12 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
     if (detail) closeButtonRef.current?.focus();
   }, [detail]);
 
-  const stickers = tab === 'legendary'
-    ? STICKERS.filter(s => s.legendary === true)
-    : STICKERS.filter(s => s.series === tab || s.series === `legendary-${tab}`);
+  const isFusionTab = tab === 'fusion';
+  const stickers = isFusionTab
+    ? []
+    : tab === 'legendary'
+      ? STICKERS.filter(s => s.legendary === true)
+      : STICKERS.filter(s => s.series === tab || s.series === `legendary-${tab}`);
   const owned = id => id in (state.collection || {});
 
   return (
@@ -70,12 +75,16 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
         {ALL_TABS.map(s => {
           const color = SERIES_COLORS[s.id] ?? '#FFD700';
           const isActive = tab === s.id;
-          const ownedCount = s.id === 'legendary'
-            ? STICKERS.filter(st => st.legendary && owned(st.id)).length
-            : STICKERS.filter(st => (st.series === s.id || st.series === `legendary-${s.id}`) && owned(st.id)).length;
-          const totalCount = s.id === 'legendary'
-            ? STICKERS.filter(st => st.legendary).length
-            : STICKERS.filter(st => st.series === s.id || st.series === `legendary-${s.id}`).length;
+          const ownedCount = s.id === 'fusion'
+            ? (state.fusionCollection || []).length
+            : s.id === 'legendary'
+              ? STICKERS.filter(st => st.legendary && owned(st.id)).length
+              : STICKERS.filter(st => (st.series === s.id || st.series === `legendary-${s.id}`) && owned(st.id)).length;
+          const totalCount = s.id === 'fusion'
+            ? FUSIONS.length
+            : s.id === 'legendary'
+              ? STICKERS.filter(st => st.legendary).length
+              : STICKERS.filter(st => st.series === s.id || st.series === `legendary-${s.id}`).length;
           return (
             <button
               key={s.id}
@@ -99,6 +108,11 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
 
       {/* Grid */}
       <div className="flex-1 overflow-y-auto p-3">
+        {isFusionTab ? (
+          <FusionTabContent
+            fusionCollection={state.fusionCollection || []}
+          />
+        ) : (
         <div className="grid grid-cols-3 gap-2.5">
           {stickers.map(sticker => {
             const isOwned = owned(sticker.id);
@@ -155,6 +169,7 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
             return cardEl;
           })}
         </div>
+        )}
       </div>
 
       {/* Detail Modal */}
@@ -281,6 +296,34 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function FusionTabContent({ fusionCollection }) {
+  const owned = new Set(fusionCollection);
+  return (
+    <div>
+      <div className="text-center text-xs mb-4 px-4" style={{ color: '#64748b' }}>
+        融合工房で入手できる特別キャラ（{fusionCollection.length}/{FUSIONS.length}体）
+      </div>
+      <div className="grid gap-2 px-3" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+        {FUSIONS.map(f => {
+          const isOwned = owned.has(f.id);
+          return (
+            <div key={f.id} className="rounded-xl overflow-hidden"
+              style={{
+                border: isOwned ? '2px solid rgba(255,215,0,0.5)' : '2px solid #1e293b',
+                background: '#111827',
+                aspectRatio: '1',
+                opacity: isOwned ? 1 : 0.3,
+                filter: isOwned ? 'none' : 'grayscale(1)',
+              }}>
+              <img src={f.imagePath} alt={f.name} className="w-full h-full object-cover" />
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
