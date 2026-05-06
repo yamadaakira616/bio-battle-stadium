@@ -13,6 +13,7 @@ const localStorageMock = (() => {
 Object.defineProperty(global, 'localStorage', { value: localStorageMock });
 
 import { DUPLICATE_COINS } from '../data/stickers.js';
+import { FUSIONS } from '../data/fusions.js';
 
 describe('game state logic', () => {
   beforeEach(() => localStorageMock.clear());
@@ -76,5 +77,88 @@ describe('useGameState - updateBookPage', () => {
     const before = result.current.state.bookPages;
     act(() => { result.current.updateBookPage(5, []); });
     expect(result.current.state.bookPages).toEqual(before);
+  });
+});
+
+describe('attemptFusion', () => {
+  beforeEach(() => localStorageMock.clear());
+
+  it('bio カード2枚を消費して fusionCollection に追加される（成功時）', () => {
+    const origRandom = Math.random;
+    Math.random = () => 0.05; // < 0.1 = 成功
+
+    const { result } = renderHook(() => useGameState());
+    act(() => {
+      result.current.addCardToCollection('bio-african-lion');
+      result.current.addCardToCollection('bio-african-lion');
+      result.current.addCardToCollection('bio-grey-wolf');
+    });
+
+    let fusionResult;
+    act(() => {
+      fusionResult = result.current.attemptFusion('bio-african-lion', 'bio-grey-wolf');
+    });
+
+    expect(fusionResult.success).toBe(true);
+    expect(FUSIONS.some(f => f.id === fusionResult.fusionCard.id)).toBe(true);
+    expect(result.current.state.fusionCollection).toHaveLength(1);
+    expect(result.current.state.collection['bio-african-lion']).toBe(1);
+    expect(result.current.state.collection['bio-grey-wolf']).toBeUndefined();
+
+    Math.random = origRandom;
+  });
+
+  it('失敗時（90%）はカードが消滅し fusionCollection に追加されない', () => {
+    const origRandom = Math.random;
+    Math.random = () => 0.5; // > 0.1 = 失敗
+
+    const { result } = renderHook(() => useGameState());
+    act(() => {
+      result.current.addCardToCollection('bio-african-lion');
+      result.current.addCardToCollection('bio-grey-wolf');
+    });
+
+    let fusionResult;
+    act(() => {
+      fusionResult = result.current.attemptFusion('bio-african-lion', 'bio-grey-wolf');
+    });
+
+    expect(fusionResult.success).toBe(false);
+    expect(result.current.state.fusionCollection).toHaveLength(0);
+    expect(result.current.state.collection['bio-african-lion']).toBeUndefined();
+    expect(result.current.state.collection['bio-grey-wolf']).toBeUndefined();
+
+    Math.random = origRandom;
+  });
+
+  it('同じカード2枚で fusion を試みると2枚消費される', () => {
+    const origRandom = Math.random;
+    Math.random = () => 0.5; // 失敗
+
+    const { result } = renderHook(() => useGameState());
+    act(() => {
+      result.current.addCardToCollection('bio-african-lion');
+      result.current.addCardToCollection('bio-african-lion');
+    });
+
+    act(() => {
+      result.current.attemptFusion('bio-african-lion', 'bio-african-lion');
+    });
+
+    expect(result.current.state.collection['bio-african-lion']).toBeUndefined();
+    Math.random = origRandom;
+  });
+
+  it('カードが足りない場合は何も変わらない', () => {
+    const { result } = renderHook(() => useGameState());
+    act(() => {
+      result.current.addCardToCollection('bio-african-lion'); // 1枚だけ
+    });
+
+    act(() => {
+      result.current.attemptFusion('bio-african-lion', 'bio-african-lion'); // 2枚必要
+    });
+
+    expect(result.current.state.collection['bio-african-lion']).toBe(1); // 消費されない
   });
 });

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { DUPLICATE_COINS } from '../data/stickers.js';
 import { GACHA_COST } from '../utils/gameLogic.js';
 import { getLevelUpCost, MAX_CARD_LEVEL } from '../utils/battleEngine.js';
+import { FUSIONS } from '../data/fusions.js';
 
 const KEY = 'sticker-book-v1';
 const DEFAULT_STATE = {
@@ -106,6 +107,39 @@ export function useGameState() {
 
   const pullGachaResultRef = useRef(null);
 
+  const attemptFusionResultRef = useRef(null);
+
+  function attemptFusion(cardId1, cardId2) {
+    const success = Math.random() < 0.1;
+    const fusionCard = success ? FUSIONS[Math.floor(Math.random() * FUSIONS.length)] : null;
+    const result = success ? { success: true, fusionCard } : { success: false };
+    attemptFusionResultRef.current = result;
+
+    setState(s => {
+      const col = { ...s.collection };
+
+      // カード1を1枚消費
+      if ((col[cardId1] || 0) < 1) return s;
+      col[cardId1] -= 1;
+      if (col[cardId1] <= 0) delete col[cardId1];
+
+      // カード2を1枚消費（cardId1 === cardId2 の場合も正しく動作）
+      if ((col[cardId2] || 0) < 1) return s;
+      col[cardId2] -= 1;
+      if (col[cardId2] <= 0) delete col[cardId2];
+
+      if (success) {
+        return {
+          ...s,
+          collection: col,
+          fusionCollection: [...(s.fusionCollection || []), fusionCard.id],
+        };
+      }
+      return { ...s, collection: col };
+    });
+    return attemptFusionResultRef.current;
+  }
+
   function pullGacha(sticker) {
     pullGachaResultRef.current = null;
     setState(s => {
@@ -184,17 +218,9 @@ export function useGameState() {
 
   return {
     state,
-    addCoins,
-    spendCoins,
-    levelUp,
-    saveStars,
-    updateBestCombo,
-    incLevelPlayCount,
-    pullGacha,
-    updateBookPage,
-    updateBattleProgress,
-    saveBattleTeam,
-    upgradeCard,
-    addCardToCollection,
+    addCoins, spendCoins, levelUp, saveStars,
+    updateBestCombo, incLevelPlayCount, pullGacha, updateBookPage,
+    updateBattleProgress, saveBattleTeam, upgradeCard, addCardToCollection,
+    attemptFusion,
   };
 }
