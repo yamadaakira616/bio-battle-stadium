@@ -131,7 +131,7 @@ export const SPECIAL_MOVES = {
   armbio: { name: '武装突進',   emoji: '⚔️', desc: '2.5倍+炎上',     type: 'burn',   mult: 2.5 },
   corps:  { name: '軍団突撃',   emoji: '👥', desc: '3体2倍',          type: 'multi',  mult: 2.0 },
   catsle: { name: '王の裁き',   emoji: '👑', desc: '3倍+回復20',      type: 'heal',   mult: 3.0 },
-  fusion: { name: '融合の咆哮', emoji: '🧬', desc: '全敵2.0倍+状態異常', type: 'aoe', mult: 2.0 },
+  fusion: { name: '融合の咆哮', emoji: '🧬', desc: '全敵2.0倍', type: 'aoe', mult: 2.0 },
   // Legendary専用必殺技
   'legendary-bio':    { name: '神話の咆哮',     emoji: '🐉', desc: '全敵2.8倍+毒',   type: 'aoe_poison', mult: 2.8 },
   'legendary-arms':   { name: '天罰の一撃',     emoji: '⚡', desc: '単体5倍',         type: 'single',     mult: 5.0 },
