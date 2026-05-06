@@ -53,3 +53,28 @@ describe('game state logic', () => {
     expect(s[1]).toBe(3);
   });
 });
+
+describe('useGameState - updateBookPage', () => {
+  beforeEach(() => localStorageMock.clear());
+
+  it('updates bookPages[0] when called with a valid pageIndex', () => {
+    const { result } = renderHook(() => useGameState());
+    const stickers = [{ stickerId: 'ss-ame-chan', x: 0.5, y: 0.5, scale: 1 }];
+    act(() => { result.current.updateBookPage(0, stickers); });
+    expect(result.current.state.bookPages[0]).toEqual(stickers);
+  });
+
+  it('does not change state when pageIndex is -1 (out-of-range)', () => {
+    const { result } = renderHook(() => useGameState());
+    const before = result.current.state.bookPages;
+    act(() => { result.current.updateBookPage(-1, []); });
+    expect(result.current.state.bookPages).toEqual(before);
+  });
+
+  it('does not change state when pageIndex is 5 (out-of-range)', () => {
+    const { result } = renderHook(() => useGameState());
+    const before = result.current.state.bookPages;
+    act(() => { result.current.updateBookPage(5, []); });
+    expect(result.current.state.bookPages).toEqual(before);
+  });
+});
