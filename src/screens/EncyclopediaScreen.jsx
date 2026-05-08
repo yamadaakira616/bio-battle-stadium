@@ -19,6 +19,7 @@ const SERIES_COLORS = {
   'legendary-armbio': '#FFD700',
   'legendary-corps':  '#FFD700',
   'legendary-catsle': '#FFD700',
+  'fusion':           '#a78bfa',
 };
 
 const SERIES_LABELS = {
@@ -32,6 +33,7 @@ const SERIES_LABELS = {
   'legendary-armbio': '✨ 伝説の武装生物',
   'legendary-corps':  '✨ 伝説の軍団',
   'legendary-catsle': '✨ 伝説の城主',
+  'fusion':           '🧬 融合限定',
 };
 
 export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
@@ -111,6 +113,7 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
         {isFusionTab ? (
           <FusionTabContent
             fusionCollection={state.fusionCollection || []}
+            onCardClick={setDetail}
           />
         ) : (
         <div className="grid grid-cols-3 gap-2.5">
@@ -300,7 +303,7 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
   );
 }
 
-function FusionTabContent({ fusionCollection }) {
+function FusionTabContent({ fusionCollection, onCardClick }) {
   const owned = new Set(fusionCollection);
   return (
     <div>
@@ -311,14 +314,19 @@ function FusionTabContent({ fusionCollection }) {
         {FUSIONS.map(f => {
           const isOwned = owned.has(f.id);
           return (
-            <div key={f.id} className="rounded-xl overflow-hidden"
+            <div
+              key={f.id}
+              className="rounded-xl overflow-hidden"
               style={{
-                border: isOwned ? '2px solid rgba(255,215,0,0.5)' : '2px solid #1e293b',
+                border: isOwned ? '2px solid rgba(167,139,250,0.5)' : '2px solid #1e293b',
                 background: '#111827',
                 aspectRatio: '1',
                 opacity: isOwned ? 1 : 0.3,
                 filter: isOwned ? 'none' : 'grayscale(1)',
-              }}>
+                cursor: isOwned ? 'pointer' : 'default',
+              }}
+              onClick={isOwned ? () => onCardClick(f) : undefined}
+            >
               <img src={f.imagePath} alt={f.name} className="w-full h-full object-cover" />
             </div>
           );
