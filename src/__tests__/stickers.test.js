@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { STICKERS, SERIES, rollGacha, DUPLICATE_COINS } from '../data/stickers.js';
 
 describe('STICKERS', () => {
-  it('156種類のシールがある', () => {
-    expect(STICKERS).toHaveLength(156);
+  it('196種類のシールがある', () => {
+    expect(STICKERS).toHaveLength(196);
   });
 
   it('すべてのシールにid・name・series・imagePathがある', () => {
@@ -21,11 +21,11 @@ describe('STICKERS', () => {
   });
 
   it('シリーズ別の枚数が正しい', () => {
-    expect(STICKERS.filter(s => s.series === 'bio').length).toBe(44);
-    expect(STICKERS.filter(s => s.series === 'arms').length).toBe(32);
-    expect(STICKERS.filter(s => s.series === 'armbio').length).toBe(24);
-    expect(STICKERS.filter(s => s.series === 'corps').length).toBe(24);
-    expect(STICKERS.filter(s => s.series === 'catsle').length).toBe(12);
+    expect(STICKERS.filter(s => s.series === 'bio').length).toBe(52);
+    expect(STICKERS.filter(s => s.series === 'arms').length).toBe(40);
+    expect(STICKERS.filter(s => s.series === 'armbio').length).toBe(32);
+    expect(STICKERS.filter(s => s.series === 'corps').length).toBe(32);
+    expect(STICKERS.filter(s => s.series === 'catsle').length).toBe(20);
     expect(STICKERS.filter(s => s.series === 'legendary-bio').length).toBe(4);
     expect(STICKERS.filter(s => s.series === 'legendary-arms').length).toBe(4);
     expect(STICKERS.filter(s => s.series === 'legendary-armbio').length).toBe(4);

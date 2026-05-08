@@ -177,6 +177,56 @@ export const STICKERS = [
   { id:'cas-polar-bear-king',        name:'Polar Bear King',          series:'catsle', imagePath:B+'assets/gacha/catsle/polar-bear-king.png' },
   { id:'cas-green-iguana-king',      name:'Green Iguana King',        series:'catsle', imagePath:B+'assets/gacha/catsle/green-iguana-king.png' },
 
+  // ===== 生物 新追加 (8枚) =====
+  { id:'bio-chameleon',            name:'Chameleon',            series:'bio', imagePath:B+'assets/gacha/bio/bio-chameleon.png' },
+  { id:'bio-komodo-dragon',        name:'Komodo Dragon',        series:'bio', imagePath:B+'assets/gacha/bio/bio-komodo-dragon.png' },
+  { id:'bio-frilled-lizard',       name:'Frilled Lizard',       series:'bio', imagePath:B+'assets/gacha/bio/bio-frilled-lizard.png' },
+  { id:'bio-green-iguana',         name:'Green Iguana',         series:'bio', imagePath:B+'assets/gacha/bio/bio-green-iguana.png' },
+  { id:'bio-king-cobra',           name:'King Cobra',           series:'bio', imagePath:B+'assets/gacha/bio/bio-king-cobra.png' },
+  { id:'bio-nile-crocodile',       name:'Nile Crocodile',       series:'bio', imagePath:B+'assets/gacha/bio/bio-nile-crocodile.png' },
+  { id:'bio-indian-star-tortoise', name:'Indian Star Tortoise', series:'bio', imagePath:B+'assets/gacha/bio/bio-indian-star-tortoise.png' },
+  { id:'bio-leatherback-turtle',   name:'Leatherback Turtle',   series:'bio', imagePath:B+'assets/gacha/bio/bio-leatherback-turtle.png' },
+
+  // ===== 武器 新追加 (8枚) =====
+  { id:'arm-battle-axe',      name:'Battle Axe',      series:'arms', imagePath:B+'assets/gacha/arms/arm-battle-axe.png' },
+  { id:'arm-viking-axe',      name:'Viking Axe',      series:'arms', imagePath:B+'assets/gacha/arms/arm-viking-axe.png' },
+  { id:'arm-berserker-axe',   name:'Berserker Axe',   series:'arms', imagePath:B+'assets/gacha/arms/arm-berserker-axe.png' },
+  { id:'arm-executioner-axe', name:'Executioner Axe', series:'arms', imagePath:B+'assets/gacha/arms/arm-executioner-axe.png' },
+  { id:'arm-tomahawk',        name:'Tomahawk',        series:'arms', imagePath:B+'assets/gacha/arms/arm-tomahawk.png' },
+  { id:'arm-war-pick-axe',    name:'War Pick Axe',    series:'arms', imagePath:B+'assets/gacha/arms/arm-war-pick-axe.png' },
+  { id:'arm-double-bit-axe',  name:'Double-Bit Axe',  series:'arms', imagePath:B+'assets/gacha/arms/arm-double-bit-axe.png' },
+  { id:'arm-dwarven-axe',     name:'Dwarven Axe',     series:'arms', imagePath:B+'assets/gacha/arms/arm-dwarven-axe.png' },
+
+  // ===== 武装生物 新追加 (8枚) =====
+  { id:'ab-iguana-spear',             name:'Green Iguana Spearman',      series:'armbio', imagePath:B+'assets/gacha/armbio/ab-iguana-spear.png' },
+  { id:'ab-gecko-sword',              name:'Gecko Swordsman',            series:'armbio', imagePath:B+'assets/gacha/armbio/ab-gecko-sword.png' },
+  { id:'ab-chameleon-bow',            name:'Chameleon Archer',           series:'armbio', imagePath:B+'assets/gacha/armbio/ab-chameleon-bow.png' },
+  { id:'ab-monitor-axe',              name:'Monitor Lizard Warrior',     series:'armbio', imagePath:B+'assets/gacha/armbio/ab-monitor-axe.png' },
+  { id:'ab-cobra-staff',              name:'King Cobra Mage',            series:'armbio', imagePath:B+'assets/gacha/armbio/ab-cobra-staff.png' },
+  { id:'ab-tortoise-mace',            name:'Tortoise Knight',            series:'armbio', imagePath:B+'assets/gacha/armbio/ab-tortoise-mace.png' },
+  { id:'ab-croc-dagger',              name:'Crocodile Rogue',            series:'armbio', imagePath:B+'assets/gacha/armbio/ab-croc-dagger.png' },
+  { id:'ab-bearded-dragon-crossbow',  name:'Bearded Dragon Ranger',      series:'armbio', imagePath:B+'assets/gacha/armbio/ab-bearded-dragon-crossbow.png' },
+
+  // ===== 軍団 新追加 (8枚) =====
+  { id:'cor-iguana-legion',       name:'Iguana Legion',         series:'corps', imagePath:B+'assets/gacha/corps/cor-iguana-legion.png' },
+  { id:'cor-gecko-clan',          name:'Gecko Clan',            series:'corps', imagePath:B+'assets/gacha/corps/cor-gecko-clan.png' },
+  { id:'cor-chameleon-syndicate', name:'Chameleon Syndicate',   series:'corps', imagePath:B+'assets/gacha/corps/cor-chameleon-syndicate.png' },
+  { id:'cor-monitor-legion',      name:'Monitor Legion',        series:'corps', imagePath:B+'assets/gacha/corps/cor-monitor-legion.png' },
+  { id:'cor-cobra-cult',          name:'Cobra Cult',            series:'corps', imagePath:B+'assets/gacha/corps/cor-cobra-cult.png' },
+  { id:'cor-tortoise-phalanx',    name:'Tortoise Phalanx',      series:'corps', imagePath:B+'assets/gacha/corps/cor-tortoise-phalanx.png' },
+  { id:'cor-croc-warband',        name:'Crocodile Warband',     series:'corps', imagePath:B+'assets/gacha/corps/cor-croc-warband.png' },
+  { id:'cor-bearded-dragon-tribe',name:'Bearded Dragon Tribe',  series:'corps', imagePath:B+'assets/gacha/corps/cor-bearded-dragon-tribe.png' },
+
+  // ===== 城主 新追加 (8枚) =====
+  { id:'cas-cobra-kingdom',        name:'Cobra Kingdom',        series:'catsle', imagePath:B+'assets/gacha/catsle/cas-cobra-kingdom.png' },
+  { id:'cas-chameleon-realm',      name:'Chameleon Realm',      series:'catsle', imagePath:B+'assets/gacha/catsle/cas-chameleon-realm.png' },
+  { id:'cas-rhino-empire',         name:'Rhino Empire',         series:'catsle', imagePath:B+'assets/gacha/catsle/cas-rhino-empire.png' },
+  { id:'cas-dragonfly-nation',     name:'Dragonfly Nation',     series:'catsle', imagePath:B+'assets/gacha/catsle/cas-dragonfly-nation.png' },
+  { id:'cas-scarlet-ibis-kingdom', name:'Scarlet Ibis Kingdom', series:'catsle', imagePath:B+'assets/gacha/catsle/cas-scarlet-ibis-kingdom.png' },
+  { id:'cas-hippo-realm',          name:'Hippopotamus Realm',   series:'catsle', imagePath:B+'assets/gacha/catsle/cas-hippo-realm.png' },
+  { id:'cas-orca-empire',          name:'Orca Empire',          series:'catsle', imagePath:B+'assets/gacha/catsle/cas-orca-empire.png' },
+  { id:'cas-scorpion-dominion',    name:'Scorpion Dominion',    series:'catsle', imagePath:B+'assets/gacha/catsle/cas-scorpion-dominion.png' },
+
   // ===== ✨ Legendary 生物 (4枚) =====
   { id:'leg-bio-dragon',   name:'Dragon',   series:'legendary-bio', imagePath:B+'assets/gacha/legendary/bio/legendary-dragon.png',   legendary:true },
   { id:'leg-bio-griffin',  name:'Griffin',  series:'legendary-bio', imagePath:B+'assets/gacha/legendary/bio/legendary-griffin.png',  legendary:true },

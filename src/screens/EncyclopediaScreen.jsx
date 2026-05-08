@@ -131,7 +131,7 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
                 style={{
                   background: isLegendary ? 'rgba(255,215,0,0.05)' : 'rgba(255,255,255,0.03)',
                   border: isLegendary ? '1px solid rgba(255,215,0,0.4)' : `1px solid ${seriesColor}25`,
-                  aspectRatio: '1',
+                  aspectRatio: '3/5',
                   boxShadow: isLegendary ? '0 0 8px rgba(255,215,0,0.15)' : 'none',
                 }}
               >
@@ -161,7 +161,7 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
                 style={{
                   background: 'rgba(255,255,255,0.015)',
                   border: '1px solid rgba(255,255,255,0.03)',
-                  aspectRatio: '1',
+                  aspectRatio: '3/5',
                 }}
               >
                 <div className="flex flex-col items-center justify-center h-full">
@@ -218,7 +218,7 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
                 <img
                   src={detail.imagePath}
                   alt={detail.name}
-                  style={{ width: 120, height: 120, objectFit: 'contain' }}
+                  style={{ width: 120, height: 160, objectFit: 'contain' }}
                 />
               </div>
             </div>
@@ -320,14 +320,14 @@ function FusionTabContent({ fusionCollection, onCardClick }) {
               style={{
                 border: isOwned ? '2px solid rgba(167,139,250,0.5)' : '2px solid #1e293b',
                 background: '#111827',
-                aspectRatio: '1',
+                aspectRatio: '3/5',
                 opacity: isOwned ? 1 : 0.3,
                 filter: isOwned ? 'none' : 'grayscale(1)',
                 cursor: isOwned ? 'pointer' : 'default',
               }}
               onClick={isOwned ? () => onCardClick(f) : undefined}
             >
-              <img src={f.imagePath} alt={f.name} className="w-full h-full object-cover" />
+              <img src={f.imagePath} alt={f.name} className="w-full h-full object-contain" />
             </div>
           );
         })}
