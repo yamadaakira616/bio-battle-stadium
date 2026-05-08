@@ -10,7 +10,6 @@ const SERIES_LABELS = {
   armbio: '武装生物',
   corps: '軍団',
   catsle: '城主',
-  fusion: '🧬 融合',
 };
 const SERIES_COLORS = {
   bio: '#22c55e',
@@ -18,7 +17,6 @@ const SERIES_COLORS = {
   armbio: '#ef4444',
   corps: '#a855f7',
   catsle: '#d69e2e',
-  fusion: '#a78bfa',
 };
 const STARTERS = {
   bio:    'bio-migratory-locust',
@@ -32,10 +30,17 @@ const cardMap = Object.fromEntries([...STICKERS, ...FUSIONS].map(s => [s.id, s])
 
 export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
   const lastTeam = state.battleProgress?.teamIds || [];
-  const ownedFusions = [...new Set(state.fusionCollection || [])].map(id => FUSIONS.find(f => f.id === id)).filter(Boolean);
-  const hasFusion = ownedFusions.length > 0;
+  const ownedFusionCards = [...new Set(state.fusionCollection || [])]
+    .map(id => FUSIONS.find(f => f.id === id)).filter(Boolean);
 
   function getOwnedForSlot(series) {
+    if (series === 'bio') {
+      // 生物枠：通常bioカード + 融合キャラを一緒に表示
+      const bioCards = STICKERS.filter(s =>
+        (s.series === 'bio' || s.series === 'legendary-bio') && (s.id in (state.collection || {}))
+      );
+      return [...bioCards, ...ownedFusionCards];
+    }
     return STICKERS.filter(s =>
       (s.series === series || s.series === `legendary-${series}`) && (s.id in (state.collection || {}))
     );
@@ -49,11 +54,6 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
       const validLast = lastCard && owned.find(c => c.id === lastCard.id);
       sel[series] = validLast ? lastCard.id : (owned[0]?.id || STARTERS[series]);
     });
-    // 融合スロット: 前回のチームに融合キャラがあれば復元
-    const lastFusionId = lastTeam.find(id => FUSIONS.some(f => f.id === id));
-    sel['fusion'] = (lastFusionId && ownedFusions.some(f => f.id === lastFusionId))
-      ? lastFusionId
-      : (ownedFusions[0]?.id || null);
     return sel;
   }
 
@@ -64,10 +64,7 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
   }
 
   function handleConfirm() {
-    const teamIds = [
-      ...SERIES_ORDER.map(s => selections[s]).filter(Boolean),
-      ...(hasFusion && selections['fusion'] ? [selections['fusion']] : []),
-    ];
+    const teamIds = SERIES_ORDER.map(s => selections[s]).filter(Boolean);
     onConfirm(teamIds);
   }
 
@@ -102,7 +99,10 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
             const cardId = selections[series];
             const card = cardId ? cardMap[cardId] : null;
             const color = SERIES_COLORS[series];
-            const isOwned = card && (card.id in (state.collection || {}));
+            const isOwned = card && (
+              (card.id in (state.collection || {})) ||
+              (state.fusionCollection || []).includes(card.id)
+            );
             return (
               <div key={series} className="flex-1 flex flex-col items-center gap-1">
                 <div
@@ -119,19 +119,6 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
               </div>
             );
           })}
-          {hasFusion && (() => {
-            const fusionId = selections['fusion'];
-            const card = fusionId ? cardMap[fusionId] : null;
-            return (
-              <div className="flex-1 flex flex-col items-center gap-1">
-                <div className="w-11 h-11 rounded-xl overflow-hidden"
-                  style={{ border: '2px solid #a78bfa55', background: 'rgba(0,0,0,0.3)' }}>
-                  {card && <img src={card.imagePath} alt={card.name} className="w-full h-full object-contain" />}
-                </div>
-                <div style={{ fontSize: 8, color: '#a78bfa', fontWeight: 700 }}>融合</div>
-              </div>
-            );
-          })()}
         </div>
       </div>
 
@@ -208,6 +195,9 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
                         {card.legendary && (
                           <div style={{ position:'absolute', bottom:1, right:1, fontSize:7, fontWeight:900, background:'#FFD700', color:'#000', borderRadius:3, padding:'1px 3px', lineHeight:1.2 }}>✨</div>
                         )}
+                        {card.series === 'fusion' && (
+                          <div style={{ position:'absolute', bottom:1, right:1, fontSize:7, fontWeight:900, background:'#a78bfa', color:'#fff', borderRadius:3, padding:'1px 3px', lineHeight:1.2 }}>🧬</div>
+                        )}
                       </div>
                       <div style={{
                         fontSize: 10, fontWeight: 700, textAlign: 'center', lineHeight: 1.2,
@@ -243,65 +233,6 @@ export default function TeamSelectScreen({ state, nation, onBack, onConfirm }) {
           );
         })}
 
-        {/* 融合スロット */}
-        {hasFusion && (
-          <div className="rounded-2xl overflow-hidden"
-            style={{ background: 'rgba(167,139,250,0.05)', border: '1px solid rgba(167,139,250,0.2)' }}>
-            <div className="px-4 py-2.5 flex items-center justify-between"
-              style={{ borderBottom: '1px solid rgba(167,139,250,0.1)' }}>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full" style={{ background: '#a78bfa' }} />
-                <span style={{ fontSize: 13, fontWeight: 800, color: '#e2e8f0' }}>🧬 融合キャラ</span>
-              </div>
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#475569' }}>{ownedFusions.length}体</span>
-            </div>
-            <div className="flex gap-2 p-3 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-              {ownedFusions.map(card => {
-                const isSelected = card.id === selections['fusion'];
-                return (
-                  <button
-                    key={card.id}
-                    onClick={() => select('fusion', card.id)}
-                    className="flex-shrink-0 flex flex-col items-center gap-1 rounded-xl p-2 transition-all active:scale-95"
-                    style={{
-                      background: isSelected ? 'rgba(167,139,250,0.15)' : 'rgba(255,255,255,0.02)',
-                      border: isSelected ? '2px solid #a78bfa88' : '2px solid transparent',
-                      minWidth: 72,
-                    }}
-                  >
-                    <div className="w-14 h-14 rounded-xl overflow-hidden" style={{ background: 'rgba(0,0,0,0.25)' }}>
-                      <img src={card.imagePath} alt={card.name} className="w-full h-full object-contain" />
-                    </div>
-                    <div style={{ fontSize: 10, fontWeight: 700, textAlign: 'center', lineHeight: 1.2,
-                      color: isSelected ? '#e2e8f0' : '#64748b', maxWidth: 64, wordBreak: 'break-word' }}>
-                      {card.name.length > 10 ? card.name.slice(0, 10) + '…' : card.name}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-            {(() => {
-              const card = selections['fusion'] ? cardMap[selections['fusion']] : null;
-              const stats = card ? getCardStats(card, 1.0, 1) : null;
-              if (!stats) return null;
-              return (
-                <div className="mx-3 mb-3 rounded-xl p-2.5 flex justify-around" style={{ background: 'rgba(0,0,0,0.2)' }}>
-                  {[
-                    { label: 'HP',  val: stats.maxHp },
-                    { label: 'ATK', val: stats.atk },
-                    { label: 'DEF', val: stats.def },
-                    { label: 'SPD', val: stats.spd },
-                  ].map(({ label, val }) => (
-                    <div key={label} className="text-center">
-                      <div style={{ fontSize: 13, fontWeight: 800, color: '#a78bfa' }}>{val}</div>
-                      <div style={{ fontSize: 9, color: '#475569', fontWeight: 600 }}>{label}</div>
-                    </div>
-                  ))}
-                </div>
-              );
-            })()}
-          </div>
-        )}
       </div>
 
       {/* Bottom CTA */}
