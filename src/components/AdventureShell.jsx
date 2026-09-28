@@ -9,6 +9,12 @@ const NAV = [
   ["FUSION", "spark", "合成ラボ"],
   ["RECORDS", "chart", "成長のきろく"],
 ];
+const MOBILE_LABELS = {
+  LEARN: "練習",
+  ENCYCLOPEDIA: "図鑑",
+  GACHA: "ガチャ",
+  RECORDS: "きろく",
+};
 export default function AdventureShell({
   screen,
   state,
@@ -57,7 +63,7 @@ export default function AdventureShell({
           <p>1日5問から、冒険をはじめよう。</p>
         </div>
         <div className="sidebar-version">
-          <span className="live-dot" /> ADVENTURE UPDATE <b>2.2</b>
+          <span className="live-dot" /> ADVENTURE UPDATE <b>2.2.1</b>
         </div>
       </aside>
       <div className="base-body">
@@ -101,22 +107,18 @@ export default function AdventureShell({
       </div>
       <nav className="mobile-nav" aria-label="クイックメニュー">
         {NAV.filter((n) =>
-          ["HOME", "QUEST", "LEARN", "ENCYCLOPEDIA", "RECORDS"].includes(n[0]),
+          ["HOME", "QUEST", "LEARN", "ENCYCLOPEDIA", "GACHA", "RECORDS"].includes(n[0]),
         ).map(([id, icon, label]) => (
           <button
             key={id}
             onClick={() => onNavigate(id)}
             aria-current={screen === id ? "page" : undefined}
-            className={screen === id ? "active" : ""}
+            className={[screen === id && "active", id === "GACHA" && "gacha-entry"]
+              .filter(Boolean)
+              .join(" ")}
           >
             <Icon name={icon} />
-            <span>
-              {id === "ENCYCLOPEDIA"
-                ? "図鑑"
-                : id === "RECORDS"
-                  ? "きろく"
-                  : label}
-            </span>
+            <span>{MOBILE_LABELS[id] || label}</span>
           </button>
         ))}
       </nav>

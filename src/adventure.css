@@ -1919,7 +1919,7 @@ td {
 }
 @media (max-width: 1080px) {
   .home-columns {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .home-secondary {
     display: grid;
@@ -2097,6 +2097,12 @@ td {
   }
   .mobile-nav > button.active {
     color: #ceee99;
+  }
+  .mobile-nav > button.gacha-entry {
+    color: #f4d594;
+  }
+  .mobile-nav > button.gacha-entry.active {
+    color: #ffe1a6;
   }
   .page-heading {
     margin-bottom: 19px;
@@ -2279,7 +2285,7 @@ td {
     margin-top: 25px;
   }
   .home-secondary {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 18px;
   }
   .daily-panel {
