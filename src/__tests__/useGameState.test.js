@@ -18,6 +18,23 @@ import { FUSIONS } from '../data/fusions.js';
 describe('game state logic', () => {
   beforeEach(() => localStorageMock.clear());
 
+  it('既存の進行・コインを保ったまま学習データを追加する', () => {
+    localStorageMock.setItem('sticker-book-v1', JSON.stringify({ level: 35, coins: 1234, collection: {'bio-triceratops': 2}, levelStars: {'1':3} }));
+    const { result } = renderHook(() => useGameState());
+    expect(result.current.state).toMatchObject({level:35,coins:1234,collection:{'bio-triceratops':2},learning:{answered:0,xp:0},soundEnabled:false});
+  });
+
+  it('保存容量不足でもクラッシュせず警告を返す', () => {
+    const original = localStorageMock.setItem;
+    localStorageMock.setItem = () => { throw new Error('QuotaExceeded'); };
+    try {
+      const { result } = renderHook(() => useGameState());
+      expect(result.current.state.storageError).toBe(true);
+      act(() => result.current.addCoins(10));
+      expect(result.current.state.coins).toBe(510);
+    } finally { localStorageMock.setItem = original; }
+  });
+
   it('DUPLICATE_COINS is 30', () => {
     expect(DUPLICATE_COINS).toBe(30);
   });

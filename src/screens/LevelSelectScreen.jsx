@@ -2,9 +2,9 @@ import { getLevelConfig, TOTAL_LEVELS } from '../utils/gameLogic';
 import WorldScene from '../components/WorldScene';
 
 const WORLD_THEMES = {
-  1: { accent: '#f472b6', name: 'はなのせかい', scene: 'grassland' },
-  2: { accent: '#a78bfa', name: 'まほうのせかい', scene: 'forest' },
-  3: { accent: '#60a5fa', name: 'ほしのせかい', scene: 'night' },
+  1: { accent: '#f472b6', name: '密林のトレーニング', scene: 'grassland' },
+  2: { accent: '#a78bfa', name: '海底のトレーニング', scene: 'forest' },
+  3: { accent: '#60a5fa', name: '星空のトレーニング', scene: 'night' },
 };
 
 export default function LevelSelectScreen({ state, onSelect, onBack }) {

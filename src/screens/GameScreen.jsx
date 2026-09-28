@@ -15,7 +15,7 @@ function StarRow({ count }) {
   );
 }
 
-export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLevelUp, onSaveStars, onBestCombo, onIncPlayed }) {
+export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLevelUp, onSaveStars, onBestCombo, onIncPlayed, onLearningFinish }) {
   const { level, coins } = state;
   const config = getLevelConfig(level);
   const levelPlayCount = state.levelPlayCount?.[String(level)] ?? 0;
@@ -47,6 +47,10 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
   const confettiTimerRef  = useRef(null);
   const insectTimerRef    = useRef(null);
 
+  const didLevelUpRef = useRef(false);
+  const learningRowsRef = useRef([]);
+  const learningSessionRef = useRef(crypto.randomUUID());
+  const answerLockedRef = useRef(false);
   const correctCountRef = useRef(0); // handleAnswer内で最新値を参照するため
 
   // BUG-07: 星計算を一箇所に集約
@@ -59,6 +63,7 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
     setChoices(generateChoices(p.answer, config.digits));
     setFlashIdx(0);
     setSelected(null);
+    answerLockedRef.current = false;
     setIsCorrect(null);
     if (isFirst) {
       setPhase(Phase.COUNTDOWN);
@@ -133,12 +138,14 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
   }, [phase, answerTimer]);
 
   function handleAnswer(choice) {
-    if (phase !== Phase.ANSWER || selected !== null) return;
+    if (phase !== Phase.ANSWER || selected !== null || answerLockedRef.current) return;
+    answerLockedRef.current = true;
     clearTimeout(answerRef.current);
 
     setSelected(choice);
     const ok = choice === problem.answer;
     setIsCorrect(ok);
+    learningRowsRef.current.push({ problem: { id: `flash-${problem.numbers.join('-')}`, mode:'flash', prompt: problem.numbers.join(' ＋ '), answer:problem.answer, hint:'数字をひとつずつ、順番にたしてみよう。', explanation: `${problem.numbers.join(' ＋ ')} ＝ ${problem.answer}` }, given:choice, correct:ok });
 
     if (ok) {
       const newCombo = combo + 1;
@@ -168,7 +175,8 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
     feedbackRef.current = setTimeout(() => {
       const isLast = questionNum >= QUESTIONS_PER_LEVEL;
       if (isLast) {
-        const finalCorrect = correctCountRef.current;
+        const finalCorrect = learningRowsRef.current.filter(r=>r.correct).length;
+        onLearningFinish?.({ id:learningSessionRef.current, mode:'flash', level, rows:learningRowsRef.current, legacyReward:true });
         const stars = calcStars(finalCorrect);
         onSaveStars(level, stars);
         onBestCombo(Math.max(maxCombo, combo + (ok ? 1 : 0)));
@@ -180,7 +188,7 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
           if (finalCorrect === 5) { playPerfect(); setTimeout(() => playCoinGet(), 800); }
           else { playLevelUp(); if (reward > 0) setTimeout(() => playCoinGet(), 800); }
           // BUG-05: レベル再プレイ時は最大レベルを上書きしない
-          if (level < 50 && level >= (maxLevel ?? level)) onLevelUp();
+          if (level < 50 && level >= (maxLevel ?? level)) { didLevelUpRef.current = true; onLevelUp(); }
           setPhase(Phase.LEVELUP);
         } else {
           setPhase(Phase.RESULT);
@@ -200,35 +208,35 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
     const isPerfect = finalCorrect === QUESTIONS_PER_LEVEL;
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-5 p-6 text-center"
-           style={{ background:'linear-gradient(180deg,#fce7f3 0%,#fdf2f8 100%)' }}>
+           style={{ background:'linear-gradient(180deg,#14271d 0%,#0c1913 100%)' }}>
         <Confetti active={true} />
-        <div className="text-9xl animate-bounce-in">{isPerfect ? '🌟' : '💕'}</div>
-        <h2 className="text-4xl font-black" style={{ color:'#db2777', textShadow:'3px 3px 0 #f9a8d4' }}>
+        <div className="text-9xl animate-bounce-in">{isPerfect ? '🌟' : '⚡'}</div>
+        <h2 className="text-4xl font-black" style={{ color:'#c1f27b', textShadow:'3px 3px 0 #b3d98b' }}>
           {isPerfect ? 'パーフェクト！' : 'クリア！'}
         </h2>
         <StarRow count={stars} />
         <div className="rounded-2xl p-4 w-full max-w-xs space-y-2"
-             style={{ background:'rgba(255,255,255,0.8)', border:'2px solid #fbcfe8' }}>
-          <div className="flex justify-between font-bold" style={{ color:'#9d174d' }}>
+             style={{ background:'rgba(26,47,31,0.95)', border:'2px solid #4d6840' }}>
+          <div className="flex justify-between font-bold" style={{ color:'#c7dab1' }}>
             <span>せいかい</span><span>{finalCorrect}/{QUESTIONS_PER_LEVEL}もん</span>
           </div>
-          <div className="flex justify-between font-bold" style={{ color:'#9d174d' }}>
+          <div className="flex justify-between font-bold" style={{ color:'#c7dab1' }}>
             <span>さいこうコンボ</span><span>🔥 x{maxCombo}</span>
           </div>
           <div className="pt-2 flex justify-between font-black text-xl"
-               style={{ borderTop:'1px solid #fbcfe8', color:'#be185d' }}>
+               style={{ borderTop:'1px solid #4d6840', color:'#c2e69b' }}>
             <span>🪙 コイン</span><span>+{reward}</span>
           </div>
         </div>
         {isPerfect && (
-          <p className="font-black text-sm animate-pulse" style={{ color:'#db2777' }}>
+          <p className="font-black text-sm animate-pulse" style={{ color:'#c1f27b' }}>
             🎊 5問全部せいかい！最高の{reward}コイン！！
           </p>
         )}
-        {level < 50 && <p className="font-bold" style={{ color:'#16a34a' }}>Lv.{level} → Lv.{level + 1}!</p>}
+        {didLevelUpRef.current && <p className="font-bold" style={{ color:'#16a34a' }}>Lv.{level} → Lv.{level + 1}!</p>}
         <button onClick={onBack}
           className="px-10 py-4 text-xl font-black text-white rounded-3xl active:scale-95 transition-transform"
-          style={{ background:'linear-gradient(135deg,#f472b6,#ec4899)', boxShadow:'0 6px 0 #be185d' }}>
+          style={{ background:'linear-gradient(135deg,#7fba4c,#82b950)', boxShadow:'0 6px 0 #c2e69b' }}>
           つぎへ！
         </button>
       </div>
@@ -239,14 +247,14 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
   if (phase === Phase.RESULT) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-5 p-6 text-center"
-           style={{ background:'linear-gradient(180deg,#fce7f3 0%,#fdf2f8 100%)' }}>
-        <div className="text-7xl">🥺</div>
-        <h2 className="text-3xl font-black" style={{ color:'#db2777' }}>もう一回！</h2>
+           style={{ background:'linear-gradient(180deg,#14271d 0%,#0c1913 100%)' }}>
+        <div className="text-7xl">🧭</div>
+        <h2 className="text-3xl font-black" style={{ color:'#c1f27b' }}>もう一回！</h2>
         <p style={{ color:'#9ca3af' }}>{correctCountRef.current}/{QUESTIONS_PER_LEVEL}もんせいかい</p>
         <p className="text-sm" style={{ color:'#d1d5db' }}>3もん以上せいかいでクリア！</p>
         <button onClick={onBack}
           className="px-10 py-4 text-xl font-black text-white rounded-3xl active:scale-95 transition-transform"
-          style={{ background:'linear-gradient(135deg,#c084fc,#a855f7)', boxShadow:'0 6px 0 #7e22ce' }}>
+          style={{ background:'linear-gradient(135deg,#8abc67,#a6d67e)', boxShadow:'0 6px 0 #364f27' }}>
           もどる
         </button>
       </div>
@@ -256,13 +264,13 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
   // ===== メイン =====
   return (
     <div className="flex flex-col items-center min-h-screen p-4 gap-3"
-         style={{ background:'linear-gradient(180deg,#fce7f3 0%,#fdf2f8 50%,#f5f0ff 100%)' }}>
+         style={{ background:'linear-gradient(180deg,#14271d 0%,#0c1913 50%,#172921 100%)' }}>
       <Confetti active={showConfetti} />
 
       {showInsectFlash && (
         <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-40">
           <div className="text-8xl" style={{ opacity: 0.2, animation: 'silhouettePulse 0.5s ease' }}>
-            💕
+            ⚡
           </div>
         </div>
       )}
@@ -278,7 +286,7 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
             onBack();
           }}
           className="text-2xl p-2">←</button>
-        <div className="font-bold text-gray-600 text-sm">{config.label} · {config.ms/1000}秒/こ</div>
+        <div className="font-bold text-lime-100 text-sm">{config.label} · {config.ms/1000}秒/こ</div>
         <div className="font-bold flex items-center gap-1">🪙{coins}</div>
       </div>
 
@@ -290,23 +298,23 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
            aria-valuemax={QUESTIONS_PER_LEVEL}
            aria-label="もんだいのしんちょく">
         <div className="h-full rounded-full transition-all duration-500"
-             style={{ width:`${((questionNum-1)/QUESTIONS_PER_LEVEL)*100}%`, background:'linear-gradient(90deg,#f9a8d4,#ec4899)' }}/>
+             style={{ width:`${((questionNum-1)/QUESTIONS_PER_LEVEL)*100}%`, background:'linear-gradient(90deg,#b3d98b,#82b950)' }}/>
       </div>
 
       {/* バッジ */}
       <div className="flex gap-2 flex-wrap justify-center">
         <span className="rounded-full px-3 py-1 font-bold text-sm"
-              style={{ background:'#fce7f3', border:'2px solid #f9a8d4', color:'#be185d' }}>
+              style={{ background:'#14271d', border:'2px solid #b3d98b', color:'#c2e69b' }}>
           ✨ Lv.{level}
         </span>
         <span className="rounded-full px-3 py-1 font-bold text-sm"
-              style={{ background:'white', border:'2px solid #fbcfe8', color:'#9d174d' }}>
+              style={{ background:'#1c3021', border:'2px solid #4d6840', color:'#c7dab1' }}>
           {questionNum}/{QUESTIONS_PER_LEVEL}
         </span>
         {combo >= 2 && (
           <span className="rounded-full px-3 py-1 font-bold text-sm text-white animate-pulse-scale"
-                style={{ background:'linear-gradient(135deg,#f472b6,#ec4899)' }}>
-            💕コンボ x{combo}
+                style={{ background:'linear-gradient(135deg,#7fba4c,#82b950)' }}>
+            ⚡コンボ x{combo}
           </span>
         )}
       </div>
@@ -317,9 +325,9 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
         {/* カウントダウン（初回のみ） */}
         {phase === Phase.COUNTDOWN && (
           <div className="flex flex-col items-center gap-4">
-            <p className="text-xl font-bold text-gray-500">{config.count}つの数字を足してね！</p>
+            <p className="text-xl font-bold text-lime-100">{config.count}つの数字を足してね！</p>
             <div key={countdown} className="text-9xl font-black animate-pop"
-                 style={{ color: countdown===1?'#e11d48':countdown===2?'#db2777':'#a855f7' }}>
+                 style={{ color: countdown===1?'#e11d48':countdown===2?'#c1f27b':'#a6d67e' }}>
               {countdown > 0 ? countdown : 'GO!'}
             </div>
           </div>
@@ -333,9 +341,9 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
               {problem.numbers.map((_, i) => (
                 <div key={i} className="w-4 h-4 rounded-full transition-all duration-100"
                      style={{
-                       background: i < flashIdx ? '#ec4899'
-                                 : i === flashIdx && phase === Phase.FLASH ? '#f9a8d4'
-                                 : '#fce7f3',
+                       background: i < flashIdx ? '#82b950'
+                                 : i === flashIdx && phase === Phase.FLASH ? '#b3d98b'
+                                 : '#14271d',
                        transform: i === flashIdx && phase === Phase.FLASH ? 'scale(1.3)' : 'scale(1)',
                      }}/>
               ))}
@@ -343,13 +351,13 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
 
             {/* 数字表示ボックス（シートめくり演出） */}
             <div className="w-64 h-48 rounded-3xl flex items-center justify-center shadow-xl overflow-hidden"
-                 style={{ background:'rgba(255,255,255,0.9)', perspective:'600px' }}>
+                 style={{ background:'rgba(26,47,31,0.95)', perspective:'600px' }}>
               {phase === Phase.FLASH ? (
                 <div key={`${questionNum}-${flashIdx}`} className="font-black sheet-flip-in tabular-nums"
                      style={{
                        fontSize: config.digits===1 ? '7rem' : config.digits===2 ? '5rem' : '3.5rem',
-                       color:'#831843',
-                       textShadow:'3px 3px 0 rgba(251,207,232,0.8)',
+                       color:'#d7f3b8',
+                       textShadow:'3px 3px 0 rgba(60,90,35,0.8)',
                        display:'inline-block',
                      }}>
                   {problem.numbers[flashIdx]}
@@ -366,7 +374,7 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
         {/* 答え入力 */}
         {(phase === Phase.ANSWER || phase === Phase.FEEDBACK) && (
           <div className="flex flex-col items-center gap-5 w-full">
-            <div className="text-4xl font-black text-gray-700">ぜんぶで いくつ？</div>
+            <div className="text-4xl font-black text-lime-100">ぜんぶで いくつ？</div>
 
             {/* 答えタイマーバー */}
             {phase === Phase.ANSWER && (
@@ -374,7 +382,7 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
                 <div className="h-full rounded-full transition-all duration-1000"
                      style={{
                        width:`${answerTimer * 10}%`,
-                       background: answerTimer>6 ? '#f9a8d4' : answerTimer>3 ? '#f472b6' : '#e11d48',
+                       background: answerTimer>6 ? '#b3d98b' : answerTimer>3 ? '#7fba4c' : '#e11d48',
                      }}/>
               </div>
             )}
@@ -383,7 +391,7 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
             <div key={shakeKey}
                  className={`grid grid-cols-2 gap-4 w-full max-w-xs ${isCorrect===false ? 'animate-shake' : ''}`}>
               {choices.map(c => {
-                let bg='white', border='#fbcfe8', color='#be185d';
+                let bg='#203722', border='#4d6840', color='#c2e69b';
                 if (selected === c) {
                   if (isCorrect) { bg='#22c55e'; border='#16a34a'; color='white'; }
                   else           { bg='#ef4444'; border='#b91c1c'; color='white'; }
@@ -409,8 +417,8 @@ export default function GameScreen({ state, maxLevel, onBack, onEarnCoins, onLev
               <div role="alert" aria-live="assertive"
                    className={`text-3xl font-black animate-bounce-in ${isCorrect ? 'text-green-500' : 'text-red-500'}`}>
                 {isCorrect
-                  ? combo >= 3 ? `💕 ${combo}れんぞく！` : '🎉 せいかい！'
-                  : `😢 こたえは ${problem?.answer}`}
+                  ? combo >= 3 ? `⚡ ${combo}れんぞく！` : '🎉 せいかい！'
+                  : `次へのヒント！ こたえは ${problem?.answer}`}
               </div>
             )}
           </div>

@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   base: '/bio-battle-stadium/',
   plugins: [react(), tailwindcss()],
   build: {
@@ -17,8 +17,9 @@ export default defineConfig({
       },
     },
   },
+  esbuild: mode === 'test' ? { jsx: 'automatic' } : undefined,
   test: {
     environment: 'jsdom',
     globals: true,
   },
-});
+}));

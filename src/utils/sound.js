@@ -1,11 +1,15 @@
+let soundEnabled = false;
+export function setSoundEnabled(value) { soundEnabled = !!value; }
 let ctx = null;
 function getCtx() {
   if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
   return ctx;
 }
 function tone(freq, type, vol, start, dur) {
+  if (!soundEnabled) return;
   try {
     const c = getCtx();
+    if (c.state === 'suspended') c.resume().catch(() => {});
     const o = c.createOscillator();
     const g = c.createGain();
     o.connect(g); g.connect(c.destination);

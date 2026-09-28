@@ -3,9 +3,15 @@ import { DUPLICATE_COINS } from '../data/stickers.js';
 import { GACHA_COST } from '../utils/gameLogic.js';
 import { getLevelUpCost, MAX_CARD_LEVEL } from '../utils/battleEngine.js';
 import { FUSIONS } from '../data/fusions.js';
+import { normalizeAttendance, recordVisit, claimLoginBonus, normalizeFirstClears, saveLevelResult } from '../utils/attendance.js';
+import { dateKey, emptyLearning, normalizeLearning, recordLearningSession, claimLearningMission } from '../utils/learning.js';
 
 const KEY = 'sticker-book-v1';
 const DEFAULT_STATE = {
+  attendance: { days: [], claims: {} },
+  levelFirstClears: {},
+  learning: emptyLearning(),
+  soundEnabled: false,
   level: 1,
   coins: 500,
   collection: {},           // 変更: [] → {}
@@ -58,13 +64,53 @@ export function useGameState() {
 
       const bookPages = Array.isArray(parsed.bookPages) && parsed.bookPages.length === 5
         ? parsed.bookPages : DEFAULT_STATE.bookPages;
-      return { ...DEFAULT_STATE, ...parsed, level, coins, collection, fusionCollection, bookPages };
+      return { ...DEFAULT_STATE, ...parsed, level, coins, collection, fusionCollection, bookPages, attendance: normalizeAttendance(parsed.attendance, parsed.learning?.daily), levelFirstClears: normalizeFirstClears(parsed.levelFirstClears, parsed.levelStars), learning: normalizeLearning(parsed.learning), soundEnabled: parsed.soundEnabled === true };
     } catch { return DEFAULT_STATE; }
   });
 
+  const [storageError, setStorageError] = useState(false);
   useEffect(() => {
-    localStorage.setItem(KEY, JSON.stringify(state));
+    try { localStorage.setItem(KEY, JSON.stringify(state)); setStorageError(false); }
+    catch { setStorageError(true); }
   }, [state]);
+
+  const [today, setToday] = useState(() => dateKey());
+  useEffect(() => {
+    let midnight;
+    function refreshDate() {
+      const now = new Date();
+      setToday(dateKey(now));
+      setState(s => recordVisit(s, now));
+      clearTimeout(midnight);
+      const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+      midnight = setTimeout(refreshDate, next.getTime() - now.getTime() + 100);
+    }
+    refreshDate();
+    window.addEventListener('focus', refreshDate);
+    function onVisible() { if (document.visibilityState === 'visible') refreshDate(); }
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearTimeout(midnight);
+      window.removeEventListener('focus', refreshDate);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, []);
+
+  function claimLogin() {
+    const now = new Date();
+    setToday(dateKey(now));
+    setState(s => claimLoginBonus(s, now));
+  }
+
+  function finishLearning(session) {
+    const date = new Date();
+    setState(s => recordLearningSession(s, session, date));
+  }
+  function claimMission(id) {
+    const date = new Date();
+    setState(s => claimLearningMission(s, id, date));
+  }
+  function toggleSound() { setState(s => ({ ...s, soundEnabled: !s.soundEnabled })); }
 
   function addCoins(n) {
     setState(s => ({ ...s, coins: s.coins + n }));
@@ -79,14 +125,8 @@ export function useGameState() {
   }
 
   function saveStars(lvl, stars) {
-    setState(s => {
-      const key = String(lvl);
-      const prev = s.levelStars[key] || 0;
-      if (stars <= prev) return s;
-      const newStars = { ...s.levelStars, [key]: stars };
-      const total = Object.values(newStars).reduce((a, b) => a + b, 0);
-      return { ...s, levelStars: newStars, totalStars: total };
-    });
+    const now = new Date();
+    setState(s => saveLevelResult(s, lvl, stars, now));
   }
 
   function updateBestCombo(combo) {
@@ -226,7 +266,8 @@ export function useGameState() {
   }
 
   return {
-    state,
+    state: { ...state, storageError, today },
+    finishLearning, claimMission, toggleSound, claimLogin,
     addCoins, spendCoins, levelUp, saveStars,
     updateBestCombo, incLevelPlayCount, pullGacha, updateBookPage,
     updateBattleProgress, saveBattleTeam, upgradeCard, addCardToCollection,
