@@ -16,6 +16,7 @@ export default function LearningScreen({
   onBack,
   onFinish,
   onFlash,
+  onHundred,
 }) {
   const [mode, setMode] = useState(initialMode),
     [difficulty, setDifficulty] = useState(zone?.difficulty || 1);
@@ -258,13 +259,22 @@ export default function LearningScreen({
                 </div>
               </div>
               {!zone && (
-                <button
-                  className="secondary-button full-width"
-                  onClick={onFlash}
-                >
-                  <Icon name="bolt" />
-                  フラッシュ暗算はこちら
-                </button>
+                <>
+                  <button
+                    className="secondary-button full-width"
+                    onClick={onHundred}
+                  >
+                    <Icon name="abacus" />
+                    1〜100 そろばんロードはこちら
+                  </button>
+                  <button
+                    className="secondary-button full-width"
+                    onClick={onFlash}
+                  >
+                    <Icon name="bolt" />
+                    フラッシュ暗算はこちら
+                  </button>
+                </>
               )}
               {zone && (
                 <div className="quest-prize">

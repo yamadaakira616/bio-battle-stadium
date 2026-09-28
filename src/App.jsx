@@ -3,6 +3,7 @@ import { useGameState } from "./hooks/useGameState.js";
 import HomeScreen from "./screens/AdventureHome.jsx";
 import AdventureShell from "./components/AdventureShell.jsx";
 import LearningScreen from "./screens/LearningScreen.jsx";
+import HundredAbacusScreen from "./screens/HundredAbacusScreen.jsx";
 import QuestScreen from "./screens/QuestScreen.jsx";
 import RecordsScreen from "./screens/RecordsScreen.jsx";
 import { setSoundEnabled } from "./utils/sound";
@@ -30,6 +31,7 @@ const SCREEN = {
   TEAM_SELECT: "TEAM_SELECT",
   BATTLE: "BATTLE",
   FUSION: "FUSION",
+  HUNDRED: "HUNDRED",
 };
 
 export default function App() {
@@ -98,6 +100,16 @@ export default function App() {
           onBack={() => setScreen(screen === "QUEST_PLAY" ? "QUEST" : "HOME")}
           onFinish={finishLearning}
           onFlash={() => setScreen("LEVEL_SELECT")}
+          onHundred={() => setScreen(SCREEN.HUNDRED)}
+        />
+      );
+    if (screen === SCREEN.HUNDRED)
+      return (
+        <HundredAbacusScreen
+          state={state}
+          onBack={() => setScreen(SCREEN.HOME)}
+          onFinish={finishLearning}
+          onRecords={() => setScreen(SCREEN.RECORDS)}
         />
       );
     if (screen === "QUEST")

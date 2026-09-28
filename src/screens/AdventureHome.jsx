@@ -76,7 +76,7 @@ export default function AdventureHome({
           <p>そろばんと暗算が、きみの最強の武器になる。</p>
         </div>
         <span className="edition-tag">
-          <span className="live-dot" /> ADVENTURE 2.1
+          <span className="live-dot" /> ADVENTURE 2.2
         </span>
       </div>
       <section
@@ -249,6 +249,25 @@ export default function AdventureHome({
                 <small>つぎつぎ現れる数字に挑戦。</small>
                 <em>
                   全50レベル <Icon name="arrow" size={16} />
+                </em>
+              </span>
+            </button>
+            <button
+              className="training-tile hundred-tile"
+              onClick={() => onNavigate("HUNDRED")}
+            >
+              <span className="tile-number">04 / THE 100 STEP ROAD</span>
+              <div className="hundred-tile-art" aria-hidden="true">
+                <span>1</span>
+                <i /> <span>2</span>
+                <i /> <span>3</span>
+                <b>… 100</b>
+              </div>
+              <span className="tile-copy">
+                <strong>1〜100 そろばんロード</strong>
+                <small>順足し・165くり返し。1分にも挑戦！</small>
+                <em>
+                  全100ステップ <Icon name="arrow" size={16} />
                 </em>
               </span>
             </button>

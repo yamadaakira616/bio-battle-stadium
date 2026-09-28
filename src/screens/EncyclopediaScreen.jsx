@@ -38,6 +38,7 @@ const SERIES_LABELS = {
 
 export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
   const [tab, setTab] = useState('bio');
+  const [filter, setFilter] = useState('all');
   const [detail, setDetail] = useState(null);
   const closeButtonRef = useRef(null);
 
@@ -52,6 +53,10 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
       ? STICKERS.filter(s => s.legendary === true)
       : STICKERS.filter(s => s.series === tab || s.series === `legendary-${tab}`);
   const owned = id => id in (state.collection || {});
+  const visibleStickers = stickers
+    .filter(sticker => filter === 'featured' ? sticker.featured : filter === 'owned' ? owned(sticker.id) : true)
+    .sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)));
+  const ownedCount = STICKERS.filter(sticker => owned(sticker.id)).length;
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#080c16', color: '#fff' }}>
@@ -64,7 +69,7 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
         <button onClick={onBack} aria-label="もどる" className="text-xl" style={{ color: '#64748b' }}>←</button>
         <h2 className="text-lg font-black" style={{ color: '#e2e8f0' }}>カード図鑑</h2>
         <span className="ml-auto" style={{ fontSize: 12, color: '#475569' }}>
-          {Object.keys(state.collection || {}).length}/{STICKERS.length}
+          {ownedCount}/{STICKERS.length}
         </span>
         <div className="flex items-center gap-1 px-2.5 py-1 rounded-full" style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.15)' }}>
           <span style={{ fontSize: 12 }}>🪙</span>
@@ -93,6 +98,7 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
               onClick={() => setTab(s.id)}
               className="flex-1 py-2 rounded-xl text-center transition-all"
               style={{
+                minWidth: 67,
                 background: isActive ? `${color}15` : 'transparent',
                 border: isActive ? `1px solid ${color}33` : '1px solid transparent',
               }}
@@ -110,14 +116,40 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
 
       {/* Grid */}
       <div className="flex-1 overflow-y-auto p-3">
+        {!isFusionTab && (
+          <div className="flex items-center gap-2 mb-4 overflow-x-auto" aria-label="カードの表示条件">
+            {[
+              { id: 'all', label: 'すべて' },
+              { id: 'featured', label: `✦ 新登場 ${stickers.filter(s => s.featured).length}` },
+              { id: 'owned', label: '入手済み' },
+            ].map(option => (
+              <button key={option.id} type="button" onClick={() => setFilter(option.id)}
+                aria-pressed={filter === option.id}
+                className="shrink-0 px-3 py-2 rounded-full text-xs font-extrabold"
+                style={{
+                  background: filter === option.id ? '#c1f27b' : '#1c2d28',
+                  color: filter === option.id ? '#1a2c22' : '#b4c8b7',
+                  border: '1px solid #48614d',
+                }}>
+                {option.label}
+              </button>
+            ))}
+            <span className="ml-auto shrink-0 text-xs" style={{ color: '#a3bba7' }}>{visibleStickers.length}体</span>
+          </div>
+        )}
         {isFusionTab ? (
           <FusionTabContent
             fusionCollection={state.fusionCollection || []}
             onCardClick={setDetail}
           />
         ) : (
+        visibleStickers.length === 0 ? (
+          <div className="rounded-2xl p-8 text-center" style={{ background: '#17231e', color: '#a9c1ab' }}>
+            {filter === 'featured' ? 'このシリーズには新登場カードがありません' : 'まだ入手したカードがありません'}
+          </div>
+        ) : (
         <div className="grid grid-cols-3 gap-2.5">
-          {stickers.map(sticker => {
+          {visibleStickers.map(sticker => {
             const isOwned = owned(sticker.id);
             const seriesColor = SERIES_COLORS[sticker.series] || '#64748b';
             const isLegendary = sticker.legendary === true;
@@ -149,6 +181,10 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
                     alt={sticker.name}
                     style={{ flex: 1, width: '100%', objectFit: 'contain' }}
                   />
+                  {sticker.featured && (
+                    <span className="absolute top-1 right-1 px-1.5 py-0.5 rounded-md"
+                      style={{ background: '#c1f27b', color: '#18301c', fontSize: 8, fontWeight: 900 }}>NEW</span>
+                  )}
                   <div style={{ fontSize: 9, fontWeight: 700, color: '#94a3b8', textAlign: 'center', marginTop: 2, lineHeight: 1.2 }}>
                     {sticker.name.length > 10 ? sticker.name.slice(0, 10) + '…' : sticker.name}
                   </div>
@@ -165,13 +201,22 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
                 }}
               >
                 <div className="flex flex-col items-center justify-center h-full">
-                  <div style={{ fontSize: 24, opacity: 0.1 }}>?</div>
+                  {sticker.featured ? (
+                    <div className="relative h-full w-full flex flex-col items-center justify-center overflow-hidden">
+                      <img src={sticker.imagePath} alt="" loading="lazy"
+                        className="absolute inset-0 w-full h-full object-contain"
+                        style={{ opacity: 0.4, filter: 'grayscale(1) blur(4px)' }} />
+                      <span className="relative" style={{ fontSize: 28, fontWeight: 900, color: '#d6f6b4' }}>?</span>
+                      <span className="relative" style={{ fontSize: 9, fontWeight: 900, color: '#c1f27b' }}>NEW</span>
+                    </div>
+                  ) : <div style={{ fontSize: 24, opacity: 0.1 }}>?</div>}
                 </div>
               </div>
             );
             return cardEl;
           })}
         </div>
+        )
         )}
       </div>
 
@@ -187,8 +232,8 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
           onKeyDown={e => { if (e.key === 'Escape') setDetail(null); }}
         >
           <div
-            className="w-full max-w-sm rounded-t-3xl p-5 pb-8"
-            style={{ background: '#0f1420', border: '1px solid rgba(255,255,255,0.06)' }}
+            className="w-full max-w-sm rounded-t-3xl p-5 pb-8 overflow-y-auto"
+            style={{ background: '#0f1420', border: '1px solid rgba(255,255,255,0.06)', maxHeight: '92svh' }}
             onClick={e => e.stopPropagation()}
           >
             {/* Card Info Header */}
@@ -218,7 +263,7 @@ export default function EncyclopediaScreen({ state, onBack, onUpgradeCard }) {
                 <img
                   src={detail.imagePath}
                   alt={detail.name}
-                  style={{ width: 120, height: 160, objectFit: 'contain' }}
+                  style={{ width: 180, height: 180, objectFit: 'contain' }}
                 />
               </div>
             </div>

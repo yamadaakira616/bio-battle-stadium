@@ -1,3 +1,12 @@
+import {
+  HUNDRED_COURSES,
+  HUNDRED_VARIANTS,
+  hundredReward,
+  hundredTotal,
+  emptyHundredRecords,
+  normalizeHundredRecords,
+} from "./hundredAbacus";
+
 export const MODES = {
   soroban: {
     name: "そろばん道場",
@@ -23,6 +32,11 @@ export const MODES = {
     name: "フラッシュ暗算",
     caption: "数字を見て、頭の中でそろばんを。",
     icon: "bolt",
+  },
+  hundred: {
+    name: "1〜100 そろばんロード",
+    caption: "順足しと165のくり返しを、100まで。",
+    icon: "abacus",
   },
 };
 
@@ -74,6 +88,7 @@ export function emptyLearning() {
     daily: {},
     quests: {},
     questFirstClears: {},
+    hundredRecords: emptyHundredRecords(),
     streak: 0,
     lastDate: null,
     skills: {},
@@ -95,6 +110,7 @@ export function normalizeLearning(value) {
     )
       merged[key] = {};
   const dates = merged.questFirstClears;
+  merged.hundredRecords = normalizeHundredRecords(merged.hundredRecords);
   merged.questFirstClears = Object.fromEntries(
     Object.entries(merged.quests)
       .filter(([, score]) => score >= 4)
@@ -216,6 +232,8 @@ export function sessionReward(rows) {
 }
 export function recordLearningSession(state, session, date = new Date()) {
   const learning = normalizeLearning(state.learning);
+  if (session.mode === "hundred")
+    return recordHundredLearningSession(state, learning, session, date);
   if (
     !session.id ||
     learning.sessions.some((s) => s.id === session.id) ||
@@ -303,6 +321,119 @@ export function recordLearningSession(state, session, date = new Date()) {
           zoneId: session.zoneId ?? null,
           correct,
           total: rows.length,
+          seconds: session.seconds || 0,
+        },
+      ].slice(-200),
+    },
+  };
+}
+
+function recordHundredLearningSession(state, learning, session, date) {
+  const h = session.hundred;
+  if (
+    !session.id ||
+    learning.sessions.some((s) => s.id === session.id) ||
+    !h ||
+    !(h.course in HUNDRED_COURSES) ||
+    !(h.variant in HUNDRED_VARIANTS) ||
+    !Number.isInteger(h.count) ||
+    h.count < 0 ||
+    h.count > 100 ||
+    !Number.isInteger(h.answeredCount) ||
+    h.answeredCount < 1 ||
+    h.answeredCount > 10000 ||
+    !Number.isInteger(h.correctCount) ||
+    h.correctCount < 0 ||
+    h.correctCount > 100 ||
+    h.correctCount > h.answeredCount ||
+    (h.variant === "timed" && (h.count < 1 || h.correctCount > 1)) ||
+    (h.variant === "practice" && h.count !== h.correctCount) ||
+    h.expected !== (h.count ? hundredTotal(h.course, h.count) : 0) ||
+    !Number.isInteger(h.answer) ||
+    h.answer < 0 ||
+    h.answer > 16500 ||
+    (h.variant === "practice" && h.answer !== h.expected) ||
+    (h.variant === "timed" &&
+      h.correctCount !== Number(h.answer === h.expected))
+  )
+    return state;
+
+  const key = dateKey(date);
+  const yesterday = new Date(date);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const day = todayProgress(learning, date);
+  const previous = learning.hundredRecords[h.variant][h.course];
+  const eligibleBest =
+    h.variant === "practice" || (h.fullMinute && h.correctCount === 1);
+  const personalBest = eligibleBest && h.count > previous.best;
+  const records = {
+    ...learning.hundredRecords,
+    [h.variant]: {
+      ...learning.hundredRecords[h.variant],
+      [h.course]: {
+        best: personalBest ? h.count : previous.best,
+        firstHundredDate:
+          previous.firstHundredDate ||
+          (eligibleBest && h.count === 100 ? key : null),
+      },
+    },
+  };
+  const reward = hundredReward({
+    variant: h.variant,
+    correctCount: h.correctCount,
+    correct:
+      h.variant === "practice" ? h.correctCount > 0 : h.correctCount === 1,
+    personalBest: h.variant === "timed" && personalBest,
+  });
+  const skills = { ...learning.skills };
+  const prevSkill = skills.hundred || { answered: 0, correct: 0 };
+  skills.hundred = {
+    answered: prevSkill.answered + h.answeredCount,
+    correct: prevSkill.correct + h.correctCount,
+  };
+  return {
+    ...state,
+    coins: state.coins + reward,
+    learning: {
+      ...learning,
+      xp:
+        learning.xp + Math.min(h.answeredCount, 100) * 5 + h.correctCount * 20,
+      answered: learning.answered + h.answeredCount,
+      correct: learning.correct + h.correctCount,
+      lastDate: key,
+      streak:
+        learning.lastDate === key
+          ? learning.streak
+          : learning.lastDate === dateKey(yesterday)
+            ? learning.streak + 1
+            : 1,
+      skills,
+      hundredRecords: records,
+      daily: {
+        ...learning.daily,
+        [key]: {
+          ...day,
+          answered: day.answered + h.answeredCount,
+          correct: day.correct + h.correctCount,
+          modes: [...new Set([...day.modes, "hundred"])],
+        },
+      },
+      sessions: [
+        ...learning.sessions,
+        {
+          id: session.id,
+          date: key,
+          mode: "hundred",
+          course: h.course,
+          variant: h.variant,
+          count: h.count,
+          expected: h.expected ?? null,
+          answer: h.answer ?? null,
+          fullMinute: !!h.fullMinute,
+          endReason: h.endReason,
+          earnedCoins: reward,
+          correct: h.correctCount,
+          total: h.answeredCount,
           seconds: session.seconds || 0,
         },
       ].slice(-200),

@@ -256,6 +256,20 @@ export const STICKERS = [
   { id:'leg-cas-griffin-king',             name:'Griffin King & Arboreal Castle',            series:'legendary-catsle', imagePath:B+'assets/gacha/legendary/catsle/legendary-griffin-king.png',             legendary:true },
   { id:'leg-cas-crystal-golem-king',       name:'Crystal Golem King & Ice Castle',           series:'legendary-catsle', imagePath:B+'assets/gacha/legendary/catsle/legendary-crystal-golem-king.png',       legendary:true },
   { id:'leg-cas-obsidian-manticore-king',  name:'Obsidian Manticore King & Volcanic Fortress',series:'legendary-catsle', imagePath:B+'assets/gacha/legendary/catsle/legendary-obsidian-manticore-king.png',  legendary:true },
+
+  // ===== 召喚ラボ 新登場 (12枚) =====
+  { id:'new-axolotl',            name:'ウーパールーパー',         series:'bio',           imagePath:B+'assets/gacha/new-wave/axolotl.webp',            featured:true },
+  { id:'new-electric-eel',       name:'デンキウナギ',           series:'bio',           imagePath:B+'assets/gacha/new-wave/electric-eel.webp',       featured:true },
+  { id:'new-giant-isopod',       name:'ダイオウグソクムシ',       series:'bio',           imagePath:B+'assets/gacha/new-wave/giant-isopod.webp',       featured:true },
+  { id:'new-blue-ringed-octopus',name:'ヒョウモンダコ',         series:'bio',           imagePath:B+'assets/gacha/new-wave/blue-ringed-octopus.webp',featured:true },
+  { id:'new-thunder-stag-knight', name:'雷のクワガタ騎士',         series:'armbio',        imagePath:B+'assets/gacha/new-wave/thunder-stag-knight.webp', featured:true },
+  { id:'new-magma-triceratops',  name:'マグマのトリケラトプス',   series:'armbio',        imagePath:B+'assets/gacha/new-wave/magma-triceratops.webp',  featured:true },
+  { id:'new-abyss-manta-guardian',name:'深海のエイ守護者',        series:'armbio',        imagePath:B+'assets/gacha/new-wave/abyss-manta-guardian.webp',featured:true },
+  { id:'new-frost-wolf-ranger',  name:'氷のオオカミ戦士',        series:'armbio',        imagePath:B+'assets/gacha/new-wave/frost-wolf-ranger.webp',  featured:true },
+  { id:'new-moon-kitsune',       name:'月影のキツネ',           series:'legendary-bio', imagePath:B+'assets/gacha/new-wave/moon-kitsune.webp',       legendary:true, featured:true },
+  { id:'new-crystal-leviathan',  name:'水晶のリヴァイアサン',   series:'legendary-bio', imagePath:B+'assets/gacha/new-wave/crystal-leviathan.webp', legendary:true, featured:true },
+  { id:'new-storm-kirin',        name:'嵐の麒麟',               series:'legendary-bio', imagePath:B+'assets/gacha/new-wave/storm-kirin.webp',        legendary:true, featured:true },
+  { id:'new-golden-scarab-titan',name:'黄金のスカラベ巨神',     series:'legendary-bio', imagePath:B+'assets/gacha/new-wave/golden-scarab-titan.webp',legendary:true, featured:true },
 ];
 
 // 通常ガチャ（全体1%でLegendary、0.5%でLegendary確定演出つき）

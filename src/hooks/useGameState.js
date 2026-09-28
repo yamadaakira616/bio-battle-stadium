@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { DUPLICATE_COINS } from '../data/stickers.js';
+import { DUPLICATE_COINS, LEGENDARY_DUPLICATE_COINS } from '../data/stickers.js';
 import { GACHA_COST } from '../utils/gameLogic.js';
 import { getLevelUpCost, MAX_CARD_LEVEL } from '../utils/battleEngine.js';
 import { FUSIONS } from '../data/fusions.js';
@@ -202,10 +202,11 @@ export function useGameState() {
           collection: { ...s.collection, [sticker.id]: 1 },
         };
       } else {
-        pullGachaResultRef.current = { isNew: false, coinBonus: DUPLICATE_COINS };
+        const bonus = sticker.legendary ? LEGENDARY_DUPLICATE_COINS : DUPLICATE_COINS;
+        pullGachaResultRef.current = { isNew: false, coinBonus: bonus };
         return {
           ...s,
-          coins: Math.max(0, s.coins - GACHA_COST) + DUPLICATE_COINS,
+          coins: Math.max(0, s.coins - GACHA_COST) + bonus,
           collection: { ...s.collection, [sticker.id]: newCount },
         };
       }

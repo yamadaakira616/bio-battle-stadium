@@ -12,7 +12,7 @@ const localStorageMock = (() => {
 })();
 Object.defineProperty(global, 'localStorage', { value: localStorageMock });
 
-import { DUPLICATE_COINS } from '../data/stickers.js';
+import { DUPLICATE_COINS, LEGENDARY_DUPLICATE_COINS, STICKERS } from '../data/stickers.js';
 import { FUSIONS } from '../data/fusions.js';
 
 describe('game state logic', () => {
@@ -49,6 +49,23 @@ describe('game state logic', () => {
     act(() => result.current.addCardToCollection('c01'));
     act(() => result.current.addCardToCollection('c01'));
     expect(result.current.state.collection['c01']).toBe(2);
+  });
+
+  it('伝説カードの重複は150コイン、それ以外は30コイン戻る', () => {
+    const legendary = STICKERS.find(sticker => sticker.legendary);
+    const common = STICKERS.find(sticker => sticker.series === 'bio');
+    const { result } = renderHook(() => useGameState());
+    act(() => {
+      result.current.addCardToCollection(legendary.id);
+      result.current.addCardToCollection(common.id);
+    });
+    let bonus;
+    act(() => { bonus = result.current.pullGacha(legendary); });
+    expect(bonus).toMatchObject({ isNew: false, coinBonus: LEGENDARY_DUPLICATE_COINS });
+    expect(result.current.state.coins).toBe(500 - 100 + LEGENDARY_DUPLICATE_COINS);
+    act(() => { bonus = result.current.pullGacha(common); });
+    expect(bonus).toMatchObject({ isNew: false, coinBonus: DUPLICATE_COINS });
+    expect(result.current.state.coins).toBe(500 - 200 + LEGENDARY_DUPLICATE_COINS + DUPLICATE_COINS);
   });
 
   it('collection: 旧形式（配列）のセーブデータを自動移行する', () => {

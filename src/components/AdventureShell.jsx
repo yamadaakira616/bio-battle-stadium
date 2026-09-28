@@ -57,7 +57,7 @@ export default function AdventureShell({
           <p>1日5問から、冒険をはじめよう。</p>
         </div>
         <div className="sidebar-version">
-          <span className="live-dot" /> ADVENTURE UPDATE <b>2.1</b>
+          <span className="live-dot" /> ADVENTURE UPDATE <b>2.2</b>
         </div>
       </aside>
       <div className="base-body">

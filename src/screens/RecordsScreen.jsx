@@ -1,5 +1,6 @@
 import AttendanceRecords from "../components/AttendanceRecords";
 import MilestoneRecords from "../components/MilestoneRecords";
+import HundredRecords from "../components/HundredRecords";
 import Icon from "../components/Icon";
 import { MODES, ZONES, dateKey } from "../utils/learning";
 export default function RecordsScreen({ state, learning: l, onReview }) {
@@ -82,31 +83,38 @@ export default function RecordsScreen({ state, learning: l, onReview }) {
             </h2>
           </div>
           <div className="skill-records">
-            {["soroban", "mental", "bonds", "flash", "quest", "review"].map(
-              (m) => {
-                const s = l.skills[m] || { answered: 0, correct: 0 };
-                return (
-                  <div key={m}>
-                    <div>
-                      <strong>{MODES[m]?.name || "暗算クエスト"}</strong>
-                      <span>
-                        {s.correct} / {s.answered}問 せいかい
-                      </span>
-                    </div>
-                    <div className="tiny-progress">
-                      <i
-                        style={{
-                          width: `${s.answered ? (s.correct / s.answered) * 100 : 0}%`,
-                        }}
-                      />
-                    </div>
+            {[
+              "soroban",
+              "hundred",
+              "mental",
+              "bonds",
+              "flash",
+              "quest",
+              "review",
+            ].map((m) => {
+              const s = l.skills[m] || { answered: 0, correct: 0 };
+              return (
+                <div key={m}>
+                  <div>
+                    <strong>{MODES[m]?.name || "暗算クエスト"}</strong>
+                    <span>
+                      {s.correct} / {s.answered}問 せいかい
+                    </span>
                   </div>
-                );
-              },
-            )}
+                  <div className="tiny-progress">
+                    <i
+                      style={{
+                        width: `${s.answered ? (s.correct / s.answered) * 100 : 0}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </section>
       </div>
+      <HundredRecords learning={l} />
       <MilestoneRecords state={state} />
       <section className="panel badges-panel">
         <div className="section-heading">
@@ -156,15 +164,17 @@ export default function RecordsScreen({ state, learning: l, onReview }) {
                           ? s.level
                             ? `Lv. ${s.level}`
                             : "レベルの記録なし"
-                          : s.zoneId
-                            ? ZONES.find((z) => z.id === s.zoneId)?.title
-                            : s.mode === "bonds"
-                              ? s.difficulty
-                                ? `${s.difficulty === 1 ? 5 : 10}のなかま`
-                                : "—"
-                              : s.difficulty && s.mode !== "review"
-                                ? `${s.difficulty}けた`
-                                : "—"}
+                          : s.mode === "hundred"
+                            ? `${s.course === "repeat165" ? "165くり返し" : "順足し"}・${s.variant === "timed" ? "1分" : "練習"} ${s.count ?? 0}まで`
+                            : s.zoneId
+                              ? ZONES.find((z) => z.id === s.zoneId)?.title
+                              : s.mode === "bonds"
+                                ? s.difficulty
+                                  ? `${s.difficulty === 1 ? 5 : 10}のなかま`
+                                  : "—"
+                                : s.difficulty && s.mode !== "review"
+                                  ? `${s.difficulty}けた`
+                                  : "—"}
                       </td>
                       <td>
                         {s.correct} / {s.total} 問

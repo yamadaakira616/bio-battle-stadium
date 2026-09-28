@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import Confetti from '../components/Confetti.jsx';
-import { rollGacha, rollGachaLegend, isLegendaryConfirm, DUPLICATE_COINS, SERIES } from '../data/stickers.js';
+import { rollGacha, rollGachaLegend, isLegendaryConfirm, STICKERS, SERIES } from '../data/stickers.js';
 import { GACHA_COST } from '../utils/gameLogic.js';
 import { playGachaTick, playGachaSlowTick, playGachaReveal, playGachaFlash } from '../utils/sound.js';
+import '../gacha-upgrade.css';
 
 // ===== エフェクト定義 =====
 const FX_PLAIN     = 0; // 普通
@@ -104,6 +105,7 @@ export default function GachaScreen({ state, onBack, onPull }) {
   // phase: idle | legend | cutin | spinning | reach | flash | reveal | result
   const [phase, setPhase]               = useState('idle');
   const [result, setResult]             = useState(null);
+  const [resultMeta, setResultMeta]     = useState(null);
   const [isNew, setIsNew]               = useState(false);
   const [effect, setEffect]             = useState(FX_PLAIN);
   const [isLegend, setIsLegend]         = useState(false);
@@ -122,8 +124,15 @@ export default function GachaScreen({ state, onBack, onPull }) {
   const timerRef  = useRef(null);
   const roulRef   = useRef(null);
   const cosmicRef = useRef(null);
+  const settledRef = useRef(false);
+  const pullStartedRef = useRef(false);
 
   const canPull = state.coins >= GACHA_COST;
+  const collectedCount = STICKERS.filter(sticker => (state.collection?.[sticker.id] || 0) > 0).length;
+  const featured = STICKERS.filter(sticker => sticker.featured === true);
+  const previewCards = featured.length > 0
+    ? featured.slice(-12)
+    : STICKERS.filter(sticker => ['leg-bio-dragon', 'bio-hercules-beetle', 'leg-bio-phoenix', 'bio-tyrannosaurus-rex'].includes(sticker.id));
 
   useEffect(() => () => {
     clearTimeout(timerRef.current);
@@ -133,16 +142,24 @@ export default function GachaScreen({ state, onBack, onPull }) {
 
   // ===== ガチャスタート =====
   function handlePull() {
-    if (!canPull || phase !== 'idle') return;
+    if (!canPull || phase !== 'idle' || pullStartedRef.current) return;
+    pullStartedRef.current = true;
 
-    // rollGacha()内で1%Legendary判定済み
-    // 0.5%でLegendary確定演出（isLegendaryConfirm）
+    // 0.5%の伝説確定演出と、通常抽選内の伝説1%は独立。
+    // 画面全体で伝説を引く確率は約1.495%。
     const confirmLegendary = isLegendaryConfirm();
     const sticker = confirmLegendary ? rollGachaLegend() : rollGacha();
     const isLegendaryCard = sticker.legendary === true;
     const fx = isLegendaryCard ? FX_LEGEND : pickEffect(sticker.series);
+    const award = onPull(sticker) || { isNew: false, coinBonus: 0 };
 
     setResult(sticker);
+    setResultMeta({
+      coinBonus: award.coinBonus || 0,
+      collectedCount: collectedCount + (award.isNew ? 1 : 0),
+    });
+    setIsNew(award.isNew);
+    settledRef.current = false;
     setEffect(fx);
     setIsLegend(isLegendaryCard);
     setParticles([]);
@@ -281,7 +298,7 @@ export default function GachaScreen({ state, onBack, onPull }) {
 
     if (maxFlash === 0) {
       const holdMs = actualFx === FX_RAINBOW ? 1400 : actualFx === FX_EXPLOSION ? 700 : 500;
-      timerRef.current = setTimeout(() => doReveal(sticker, actualFx), holdMs);
+      timerRef.current = setTimeout(() => doReveal(sticker), holdMs);
       return;
     }
 
@@ -294,7 +311,7 @@ export default function GachaScreen({ state, onBack, onPull }) {
         timerRef.current = setTimeout(step, 110);
       } else {
         setScreenFlash(false);
-        doReveal(sticker, actualFx);
+        doReveal(sticker);
       }
     }
     step();
@@ -309,25 +326,39 @@ export default function GachaScreen({ state, onBack, onPull }) {
   }
 
   // ===== リビール =====
-  function doReveal(sticker, fx) {
+  function doReveal(sticker) {
     setRainbowOn(false);
     setShaking(false);
     setPhase('reveal');
     playGachaReveal(REVEAL_SFX[sticker.series] ?? 'common');
     timerRef.current = setTimeout(() => {
-      setBeamOn(false);
-      setParticles([]);
-      clearInterval(cosmicRef.current);
-      const { isNew: n } = onPull(sticker);
-      setIsNew(n);
-      setPhase('result');
+      settlePull();
     }, 900);
+  }
+
+  // 抽選・支払い・付与は開始時に確定済み。ここでは表示だけを終える。
+  function settlePull() {
+    if (settledRef.current) return;
+    settledRef.current = true;
+    clearTimeout(timerRef.current);
+    clearTimeout(roulRef.current);
+    clearInterval(cosmicRef.current);
+    setBeamOn(false);
+    setParticles([]);
+    setShaking(false);
+    setRainbowOn(false);
+    setScreenFlash(false);
+    setCutinStep(0);
+    setLegendStep(0);
+    setPhase('result');
   }
 
   // ===== リセット =====
   function resetToIdle() {
+    pullStartedRef.current = false;
     setPhase('idle');
     setResult(null);
+    setResultMeta(null);
     setIsNew(false);
     setIsLegend(false);
     setParticles([]);
@@ -342,10 +373,9 @@ export default function GachaScreen({ state, onBack, onPull }) {
 
   // ===== 描画用データ =====
   const colors = result ? (SERIES_COLORS[result.series] ?? SERIES_COLORS.bio) : SERIES_COLORS.bio;
-  const isHighRare = result && ['armbio','corps','catsle','legendary-bio','legendary-arms','legendary-armbio','legendary-corps','legendary-catsle'].includes(result.series);
 
   const bgColor = phase === 'result'
-    ? `linear-gradient(180deg, ${colors.bg} 0%, #f8faff 100%)`
+    ? `radial-gradient(circle at 50% 26%, ${colors.glow} 0%, #10201d 42%, #091311 100%)`
     : phase === 'legend'
     ? 'linear-gradient(180deg,#000000 0%,#0a0020 100%)'
     : effect === FX_COSMIC || effect === FX_LEGEND
@@ -358,9 +388,12 @@ export default function GachaScreen({ state, onBack, onPull }) {
 
   return (
     <div
-      className={`min-h-screen flex flex-col items-center relative overflow-hidden${shaking ? ' gacha-shake' : ''}`}
+      className={`min-h-screen flex flex-col items-center relative overflow-hidden gacha-upgrade${shaking ? ' gacha-shake' : ''}`}
       style={{ background: bgColor, transition: 'background 0.8s ease' }}
     >
+      {phase !== 'idle' && phase !== 'result' && result && (
+        <button type="button" onClick={settlePull} className="gacha-skip">演出をスキップ</button>
+      )}
 
       {/* ===== LEGENDARY 確定演出（花・豪華エフェクト） ===== */}
       {phase === 'legend' && (
@@ -639,56 +672,51 @@ export default function GachaScreen({ state, onBack, onPull }) {
       {isNew && phase === 'result' && <Confetti active={true} />}
 
       {/* ===== ヘッダー ===== */}
-      <div className="flex items-center gap-3 w-full p-4 z-10">
-        <button onClick={onBack} aria-label="もどる" className="text-2xl"
-                style={{ color: phase === 'result' ? '#1c1917' : '#fff' }}>←</button>
-        <h2 className="text-xl font-black" style={{ color: phase === 'result' ? '#1e3a5f' : '#93c5fd' }}>⚔️ ガチャ</h2>
-        <span className="ml-auto font-bold" style={{ color: phase === 'result' ? '#1e3a5f' : '#e0f2fe' }}>🪙 {state.coins}</span>
+      <div className="gacha-upgrade-header w-full z-10">
+        <button onClick={onBack} aria-label="もどる" className="gacha-back">←</button>
+        <div className="gacha-header-brand"><span>✦</span><div><small>BIO BATTLE STADIUM</small><h2>召喚ガチャ</h2></div></div>
+        <span className="gacha-wallet">🪙 {state.coins}</span>
       </div>
 
       {/* ===== IDLE ===== */}
       {phase === 'idle' && (
-        <div className="flex flex-col items-center flex-1 justify-center gap-8 z-10">
-          <div className="relative">
-            <svg width="220" height="260" viewBox="0 0 220 260">
-              <ellipse cx="110" cy="130" rx="90" ry="100" fill="none" stroke="#3b82f6" strokeWidth="2" opacity="0.5"/>
-              <ellipse cx="110" cy="130" rx="70" ry="80" fill="none" stroke="#1d4ed8" strokeWidth="1" opacity="0.4"/>
-              <defs>
-                <linearGradient id="gGrad" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#1e3a5f"/><stop offset="100%" stopColor="#1e40af"/>
-                </linearGradient>
-                <filter id="gBlue">
-                  <feGaussianBlur stdDeviation="4" result="blur"/>
-                  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                </filter>
-              </defs>
-              <rect x="35" y="60" width="150" height="130" rx="18" fill="url(#gGrad)" filter="url(#gBlue)"/>
-              <rect x="39" y="64" width="142" height="122" rx="16" fill="#1d4ed8" opacity="0.8"/>
-              <circle cx="110" cy="115" r="52" fill="#0a1628" opacity="0.9"/>
-              <circle cx="110" cy="115" r="50" fill="none" stroke="#3b82f6" strokeWidth="2"/>
-              <ellipse cx="92" cy="95" rx="18" ry="12" fill="white" opacity="0.2"/>
-              <text x="110" y="128" fontSize="44" textAnchor="middle" dominantBaseline="middle">⚔️</text>
-              <rect x="80" y="178" width="60" height="14" rx="7" fill="#1e3a5f"/>
-              <rect x="94" y="181" width="32" height="8" rx="4" fill="#1e40af"/>
-              {['⚔️','✨','🛡️'].map((s, i) => (
-                <text key={i} x={50 + i * 60} y="55" fontSize="16" textAnchor="middle">{s}</text>
+        <div className="gacha-idle-shell z-10">
+          <section className="gacha-intro">
+            <div className="gacha-kicker">NEW DISCOVERIES · 召喚ラボ</div>
+            <h1>次の仲間は、<br /><em>だれだ。</em></h1>
+            <p>計算で集めたコインを使って、新しい生物や戦士を発見しよう。</p>
+            <div className="gacha-portal" aria-hidden="true">
+              <div className="gacha-portal-ring" />
+              <div className="gacha-portal-core">?</div>
+              <span className="gacha-portal-spark spark-one">✦</span>
+              <span className="gacha-portal-spark spark-two">✧</span>
+              <span className="gacha-portal-spark spark-three">✦</span>
+            </div>
+            <div className="gacha-collection-progress">
+              <div><strong>{collectedCount}</strong><span> / {STICKERS.length} 体 発見</span></div>
+              <span>あと {STICKERS.length - collectedCount} 体</span>
+              <div className="gacha-progress-track"><i style={{ width: `${collectedCount / STICKERS.length * 100}%` }} /></div>
+            </div>
+            <button onClick={handlePull} disabled={!canPull} className="gacha-draw-button">
+              <span>✦ 1回召喚する</span><small>🪙 {GACHA_COST} コイン</small>
+            </button>
+            {!canPull && <p className="gacha-needs-coins">あと {GACHA_COST - state.coins} コインで召喚できます</p>}
+          </section>
+          <section className="gacha-featured" aria-label="ガチャで出会える仲間">
+            <div className="gacha-featured-heading"><div><span>THE COLLECTION</span><h2>新しい仲間を発見</h2></div><b>{previewCards.length} 体に注目</b></div>
+            <p>生物・武装生物・伝説の仲間が待っています。どのカードと出会えるかはお楽しみ。</p>
+            <div className="gacha-featured-grid">
+              {previewCards.map(sticker => (
+                <div key={sticker.id} className={`gacha-featured-card${sticker.legendary ? ' is-legendary' : ''}`}>
+                  <div className="gacha-featured-art"><img src={sticker.imagePath} alt="" loading="lazy" /></div>
+                  <strong>{sticker.name}</strong>
+                  <span>{SERIES_LABELS[sticker.series]}</span>
+                  {sticker.featured && <b>NEW</b>}
+                </div>
               ))}
-            </svg>
-          </div>
-          <button
-            onClick={handlePull}
-            disabled={!canPull}
-            className="relative w-72 py-5 rounded-3xl text-xl font-black text-white shadow-2xl active:scale-95 transition-all disabled:opacity-50"
-            style={{
-              background: canPull ? 'linear-gradient(135deg,#1e40af,#1d4ed8,#1e3a5f)' : '#9ca3af',
-              boxShadow: canPull ? '0 8px 32px rgba(30,64,175,0.6), 0 0 0 3px #93c5fd' : 'none',
-            }}>
-            ⚔️ ガチャを引く！
-            <div className="text-sm font-normal opacity-80">{GACHA_COST}コイン</div>
-          </button>
-          {!canPull && (
-            <p className="text-yellow-300 font-bold text-sm">コインが足りません（あと{GACHA_COST - state.coins}コイン）</p>
-          )}
+            </div>
+            <div className="gacha-featured-foot">まだ出会っていないカードも、図鑑に記録されます。</div>
+          </section>
         </div>
       )}
 
@@ -777,113 +805,28 @@ export default function GachaScreen({ state, onBack, onPull }) {
 
       {/* ===== RESULT ===== */}
       {phase === 'result' && result && (
-        <div className="flex flex-col items-center flex-1 gap-4 px-4 pt-2 pb-6 z-10 w-full max-w-sm mx-auto">
-
-          {/* LEGENDARYバナー */}
-          {isLegend && (
-            <div className="w-full text-center py-2 rounded-2xl font-black text-lg"
-                 style={{
-                   background: 'linear-gradient(135deg,#0a0020,#3d0060,#0a0020)',
-                   border: '2px solid gold',
-                   boxShadow: '0 0 24px rgba(255,215,0,0.7), 0 0 8px rgba(255,100,200,0.5)',
-                   letterSpacing: '0.1em',
-                   animation: 'scaleInAnim 0.4s cubic-bezier(0.175,0.885,0.32,1.275)',
-                 }}>
-              <span style={{
-                background: 'linear-gradient(135deg,#FFD700,#FF69B4,#DA70D6,#FFD700)',
-                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-              }}>🌸 LEGENDARY 🌸</span>
-            </div>
-          )}
-
-          {/* レアリティバナー */}
-          <div className="w-full text-center py-3 rounded-2xl font-black text-2xl"
-               style={{
-                 background: colors.bg, color: colors.text,
-                 boxShadow: isLegend ? `0 0 30px gold, 0 0 20px ${colors.glow}` : `0 0 20px ${colors.glow}`,
-                 animation: 'scaleInAnim 0.4s cubic-bezier(0.175,0.885,0.32,1.275)',
-               }}>
-            {SERIES_LABELS[result.series]}
+        <div className={`gacha-result-screen z-10${isLegend ? ' legendary' : ''}`} style={{ '--rarity-glow': colors.glow }}>
+          <div className="gacha-result-kicker">SUMMON COMPLETE</div>
+          <div className="gacha-result-title">{isLegend ? '伝説の仲間が現れた！' : '新たな出会い！'}</div>
+          <div className="gacha-result-card">
+            <div className="gacha-result-art"><img src={result.imagePath} alt={result.name} /></div>
+            <div className="gacha-result-card-footer"><span>{SERIES_LABELS[result.series]}</span><b>{isNew ? 'NEW!' : 'GET!'}</b></div>
           </div>
-
-          {/* ハイレア装飾 */}
-          {isHighRare && (
-            <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-              {[...Array(isLegend ? 12 : 8)].map((_, i) => (
-                <div key={i} className="absolute"
-                     style={{
-                       left: `${10 + i * (isLegend ? 8 : 12)}%`,
-                       top: `${20 + (i % 3) * 25}%`,
-                       fontSize: '1.8rem',
-                       animation: `pingKf ${1 + i * 0.2}s cubic-bezier(0,0,0.2,1) ${i * 0.1}s infinite`,
-                     }}>
-                  {isLegend
-                    ? ['👑','✨','⭐','💎','🌟','💫'][i % 6]
-                    : ['⭐','✨','🌟','💫'][i % 4]}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* カード画像 */}
-          <div className="relative flex justify-center"
-               style={{ animation: 'bounceInAnim 0.6s cubic-bezier(0.175,0.885,0.32,1.275)' }}>
-            {isHighRare && (
-              <div className="absolute inset-0 rounded-3xl"
-                   style={{
-                     background: isLegend ? 'rgba(255,215,0,0.4)' : colors.glow,
-                     filter: 'blur(18px)', transform: 'scale(1.12)',
-                     animation: 'pulseAnim 1.2s ease-in-out infinite',
-                   }}/>
-            )}
-            <div className="rounded-3xl overflow-hidden shadow-xl"
-                 style={{
-                   width: 160, height: 160, background: colors.bg,
-                   boxShadow: isLegend ? '0 0 0 3px gold' : 'none',
-                 }}>
-              <img src={result.imagePath} alt={result.name}
-                   style={{ width: '100%', height: '100%', objectFit: 'contain' }}/>
-            </div>
-          </div>
-
-          <h3 className="text-2xl font-black text-center">{result.name}</h3>
-          <p className="text-sm text-gray-500">{SERIES_LABELS[result.series]}</p>
-
-          {isNew ? (
-            <div className="w-full bg-green-50 border-2 border-green-400 rounded-2xl p-4 text-center"
-                 style={{ animation: 'slideUpAnim 0.4s ease 0.2s both' }}>
-              <div className="text-2xl mb-1">🔍</div>
-              <p className="text-green-700 font-black">図鑑に登録しました！</p>
-              <p className="text-green-600 text-sm">{Object.keys(state.collection || {}).length + 1}枚目をゲット！</p>
-            </div>
-          ) : (
-            <div className="w-full bg-amber-50 border-2 border-amber-400 rounded-2xl p-4 text-center"
-                 style={{ animation: 'slideUpAnim 0.4s ease 0.2s both' }}>
-              <div className="text-2xl mb-1">💫</div>
-              <p className="text-amber-700 font-black">すでに入手済み！</p>
-              <p className="text-amber-600 text-sm">コイン +{DUPLICATE_COINS} に変換しました</p>
-            </div>
-          )}
-
-          <div className="w-full flex flex-col gap-2 mt-2">
-            {state.coins >= GACHA_COST ? (
-              <button onClick={resetToIdle}
-                      className="w-full py-4 rounded-2xl text-white font-black text-lg active:scale-95 transition-transform"
-                      style={{ background: 'linear-gradient(135deg,#1e40af,#1d4ed8)', boxShadow: '0 4px 20px rgba(30,64,175,0.5)' }}>
-                ⚔️ もう一度引く！
-              </button>
+          <h3>{result.name}</h3>
+          <p className="gacha-result-rarity">{SERIES_LABELS[result.series]}</p>
+          <div className={`gacha-result-status${isNew ? ' new' : ''}`}>
+            {isNew ? (
+              <><strong>✦ 図鑑に新登録！</strong><span>{resultMeta?.collectedCount ?? collectedCount} / {STICKERS.length} 体を発見しました</span></>
             ) : (
-              <button onClick={onBack}
-                      className="w-full py-4 rounded-2xl text-white font-black text-lg active:scale-95 transition-transform"
-                      style={{ background: 'linear-gradient(135deg,#f97316,#ea580c)' }}>
-                コインをためよう！
-              </button>
+              <><strong>もう仲間になっています</strong><span>重複ボーナス 🪙 +{resultMeta?.coinBonus ?? 0} コイン</span></>
             )}
-            <button onClick={onBack}
-                    className="w-full py-3 rounded-xl font-bold text-gray-600 bg-gray-100 active:scale-95 transition-transform">
-              ホームにもどる
-            </button>
           </div>
+          {state.coins >= GACHA_COST ? (
+            <button onClick={resetToIdle} className="gacha-draw-button">✦ 次の召喚へ <small>もう一度引く</small></button>
+          ) : (
+            <button onClick={onBack} className="gacha-draw-button">コインをためよう</button>
+          )}
+          <button onClick={onBack} className="gacha-home-button">ホームにもどる</button>
         </div>
       )}
 

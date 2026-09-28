@@ -3,12 +3,18 @@ export default function Soroban({
   onChange,
   disabled = false,
   showValue = true,
+  digits = 4,
 }) {
-  const places = [1000, 100, 10, 1],
-    names = ["千", "百", "十", "一"];
+  const places = digits === 5 ? [10000, 1000, 100, 10, 1] : [1000, 100, 10, 1],
+    names =
+      digits === 5 ? ["万", "千", "百", "十", "一"] : ["千", "百", "十", "一"];
   return (
-    <div className="soroban-widget">
-      <div className="soroban-frame" role="group" aria-label="4けたのそろばん">
+    <div className={`soroban-widget ${digits === 5 ? "five-rods" : ""}`}>
+      <div
+        className="soroban-frame"
+        role="group"
+        aria-label={`${digits}けたのそろばん`}
+      >
         {places.map((place, col) => {
           const digit = Math.floor(value / place) % 10,
             lower = digit % 5,
