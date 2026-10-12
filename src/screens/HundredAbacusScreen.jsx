@@ -86,7 +86,7 @@ export default function HundredAbacusScreen({
 }) {
   const [run, setRun] = useState(readDraft);
   const [course, setCourse] = useState(run?.course || "sequential");
-  const [variant, setVariant] = useState(run?.variant || "practice");
+  const [variant, setVariant] = useState(run?.variant || "timed");
   const [answer, setAnswer] = useState("");
   const [countInput, setCountInput] = useState("");
   const [beads, setBeads] = useState(
@@ -175,15 +175,19 @@ export default function HundredAbacusScreen({
     };
   }, [run?.status]);
 
-  function start() {
+  function start(selectedVariant = variant, selectedCourse = course) {
     finishing.current = false;
     const startedAt = Date.now();
     const countdownEndsAt = startedAt + 3000;
+    setCourse(selectedCourse);
+    setVariant(selectedVariant);
     saveDraft({
-      id: crypto.randomUUID(),
-      course,
-      variant,
-      status: variant === "timed" ? "countdown" : "practice",
+      id:
+        globalThis.crypto?.randomUUID?.() ||
+        `hundred-${startedAt}-${Math.random().toString(36).slice(2, 10)}`,
+      course: selectedCourse,
+      variant: selectedVariant,
+      status: selectedVariant === "timed" ? "countdown" : "practice",
       questionNo: 1,
       correctCount: 0,
       answeredCount: 0,
@@ -243,6 +247,12 @@ export default function HundredAbacusScreen({
     });
     saveDraft(null);
     if (count === 100) playLevelUp();
+  }
+
+  function switchToTimed() {
+    if (!run || run.variant !== "practice") return;
+    if (run.answeredCount > 0) finishPractice(run);
+    start("timed", run.course);
   }
 
   function submitPractice(event) {
@@ -367,6 +377,19 @@ export default function HundredAbacusScreen({
       {phase === "setup" && (
         <div className="hundred-layout">
           <section className="panel hundred-main-card">
+            <div className="hundred-timed-feature">
+              <span className="hundred-kicker">ONE MINUTE TEST</span>
+              <h2>1〜100の1分間テスト</h2>
+              <p>
+                3秒後にスタート。手元のそろばんか暗算で進み、1分後に進んだ数と合計を答えよう。
+              </p>
+              <button
+                className="primary-button hundred-feature-start"
+                onClick={() => start("timed")}
+              >
+                <Icon name="clock" /> 1分テストをはじめる <Icon name="arrow" />
+              </button>
+            </div>
             <span className="hundred-kicker">CHOOSE YOUR COURSE</span>
             <h2>どの計算で冒険する？</h2>
             <div
@@ -413,8 +436,15 @@ export default function HundredAbacusScreen({
                 </button>
               ))}
             </div>
-            <button className="primary-button hundred-start" onClick={start}>
-              <Icon name="bolt" /> チャレンジをはじめる <Icon name="arrow" />
+            <button
+              className="primary-button hundred-start"
+              onClick={() => start()}
+            >
+              <Icon name="bolt" />
+              {variant === "timed"
+                ? "1分チャレンジをはじめる"
+                : "チャレンジをはじめる"}
+              <Icon name="arrow" />
             </button>
           </section>
           <aside className="panel hundred-side-card">
@@ -440,6 +470,16 @@ export default function HundredAbacusScreen({
       )}
 
       {(phase === "practice" || phase === "practice-feedback") && step && (
+        <>
+        <div className="hundred-switch panel">
+          <div>
+            <strong>1分間のテストにも挑戦！</strong>
+            <p>ここまでの練習を記録して、同じ種目の1分テストを始めます。</p>
+          </div>
+          <button className="secondary-button" onClick={switchToTimed}>
+            <Icon name="clock" /> 1分テストに切り替える
+          </button>
+        </div>
         <div className="hundred-layout">
           <section className="panel hundred-main-card">
             <div className="hundred-question-head">
@@ -613,6 +653,7 @@ export default function HundredAbacusScreen({
             </div>
           </aside>
         </div>
+        </>
       )}
 
       {(phase === "countdown" || phase === "timed") && (
@@ -803,7 +844,7 @@ export default function HundredAbacusScreen({
             </span>
           </div>
           <div className="hundred-result-actions">
-            <button className="primary-button" onClick={start}>
+            <button className="primary-button" onClick={() => start()}>
               <Icon name="refresh" /> 同じコースに再挑戦
             </button>
             <button className="secondary-button" onClick={onRecords}>

@@ -3,6 +3,7 @@ const NAV = [
   ["HOME", "home", "冒険基地"],
   ["QUEST", "compass", "暗算クエスト"],
   ["LEARN", "abacus", "トレーニング"],
+  ["HUNDRED", "clock", "1〜100 1分テスト"],
   ["ENCYCLOPEDIA", "cards", "生き物図鑑"],
   ["BATTLE_MAP", "sword", "バトルスタジアム"],
   ["GACHA", "gift", "カードガチャ"],
@@ -11,6 +12,7 @@ const NAV = [
 ];
 const MOBILE_LABELS = {
   LEARN: "練習",
+  HUNDRED: "1分テスト",
   ENCYCLOPEDIA: "図鑑",
   GACHA: "ガチャ",
   RECORDS: "きろく",
@@ -63,7 +65,7 @@ export default function AdventureShell({
           <p>1日5問から、冒険をはじめよう。</p>
         </div>
         <div className="sidebar-version">
-          <span className="live-dot" /> ADVENTURE UPDATE <b>2.2.1</b>
+          <span className="live-dot" /> ADVENTURE UPDATE <b>2.2.2</b>
         </div>
       </aside>
       <div className="base-body">
@@ -107,7 +109,7 @@ export default function AdventureShell({
       </div>
       <nav className="mobile-nav" aria-label="クイックメニュー">
         {NAV.filter((n) =>
-          ["HOME", "QUEST", "LEARN", "ENCYCLOPEDIA", "GACHA", "RECORDS"].includes(n[0]),
+          ["HOME", "QUEST", "LEARN", "HUNDRED", "ENCYCLOPEDIA", "GACHA", "RECORDS"].includes(n[0]),
         ).map(([id, icon, label]) => (
           <button
             key={id}

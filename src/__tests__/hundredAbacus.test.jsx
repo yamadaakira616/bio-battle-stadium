@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import HundredAbacusScreen from "../screens/HundredAbacusScreen";
 import Soroban from "../components/Soroban";
 import {
@@ -255,6 +255,7 @@ describe("1〜100 そろばんロード", () => {
         onFinish={finish}
       />,
     );
+    fireEvent.click(screen.getByRole("button", { name: /じっくり練習/ }));
     fireEvent.click(
       screen.getByRole("button", { name: /チャレンジをはじめる/ }),
     );
@@ -307,6 +308,7 @@ describe("1〜100 そろばんロード", () => {
         onFinish={finish}
       />,
     );
+    fireEvent.click(screen.getByRole("button", { name: /じっくり練習/ }));
     fireEvent.click(
       screen.getByRole("button", { name: /チャレンジをはじめる/ }),
     );
@@ -381,6 +383,107 @@ describe("1〜100 そろばんロード", () => {
         .getByRole("button", { name: "万の位の1の珠1" })
         .getAttribute("aria-pressed"),
     ).toBe("true");
+  });
+
+  it("starts the 1-minute test from the first screen and records the completed attempt", () => {
+    let clock = Date.now();
+    vi.spyOn(Date, "now").mockImplementation(() => clock);
+    const finish = vi.fn();
+    render(
+      <HundredAbacusScreen
+        state={initial()}
+        onBack={() => {}}
+        onRecords={() => {}}
+        onFinish={finish}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "1分テストをはじめる" }));
+    expect(screen.getByText("そろばんを用意してね")).toBeTruthy();
+    const draft = JSON.parse(
+      localStorage.getItem("bio-battle-hundred-abacus-draft-v1"),
+    );
+    expect(draft).toMatchObject({
+      course: "sequential",
+      variant: "timed",
+      status: "countdown",
+    });
+
+    clock = draft.countdownEndsAt;
+    act(() => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    expect(screen.getByRole("timer").getAttribute("aria-label")).toBe(
+      "残り60秒",
+    );
+
+    clock = draft.deadline;
+    act(() => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    expect(screen.getByText("1分チャレンジ終了！")).toBeTruthy();
+    fireEvent.change(screen.getByLabelText(/最後に足した数/), {
+      target: { value: "10" },
+    });
+    fireEvent.change(screen.getByLabelText("計算した合計"), {
+      target: { value: "55" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /答えを確かめる/ }));
+    expect(finish).toHaveBeenCalledTimes(1);
+    expect(finish.mock.calls[0][0].hundred).toMatchObject({
+      course: "sequential",
+      variant: "timed",
+      count: 10,
+      expected: 55,
+      fullMinute: true,
+      endReason: "natural",
+    });
+  });
+
+  it("switches from saved practice to the 1-minute test without losing practice effort", () => {
+    localStorage.setItem(
+      "bio-battle-hundred-abacus-draft-v1",
+      JSON.stringify({
+        id: "saved-practice",
+        course: "repeat165",
+        variant: "practice",
+        status: "practice",
+        questionNo: 2,
+        correctCount: 1,
+        answeredCount: 2,
+        startedAt: Date.now() - 10000,
+        countdownEndsAt: 0,
+        deadline: 0,
+      }),
+    );
+    const finish = vi.fn();
+    render(
+      <HundredAbacusScreen
+        state={initial()}
+        onBack={() => {}}
+        onRecords={() => {}}
+        onFinish={finish}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "1分テストに切り替える" }),
+    );
+    expect(finish).toHaveBeenCalledTimes(1);
+    expect(finish.mock.calls[0][0].hundred).toMatchObject({
+      course: "repeat165",
+      variant: "practice",
+      count: 1,
+      answeredCount: 2,
+    });
+    expect(screen.getByText("そろばんを用意してね")).toBeTruthy();
+    expect(
+      JSON.parse(localStorage.getItem("bio-battle-hundred-abacus-draft-v1")),
+    ).toMatchObject({
+      course: "repeat165",
+      variant: "timed",
+      status: "countdown",
+    });
   });
 
   it("restores an elapsed timer to result entry and shows the correct total after checking", () => {
