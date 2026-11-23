@@ -11,7 +11,7 @@ function duration(record) {
   return `${Math.floor(seconds / 60)}分${String(seconds % 60).padStart(2, '0')}秒`;
 }
 
-export function WorksheetResult({ record, onBack, backLabel = '100問計算にもどる' }) {
+export function WorksheetResult({ record, saved = true, onBack, backLabel = '100問計算にもどる' }) {
   const [filter, setFilter] = useState('all');
   const [page, setPage] = useState(0);
   const rows = worksheetRows(record).filter(row => filter === 'all' || row.status === filter);
@@ -25,6 +25,9 @@ export function WorksheetResult({ record, onBack, backLabel = '100問計算に�
       </div>
       <div className="ws-report-score"><strong>{record.score}</strong><span> / 100点</span></div>
     </div>
+    {saved && record.challengeCoins > 0 && (
+      <p className="ws-bonus-note">チャレンジボーナス <strong>＋{record.challengeCoins}コイン</strong></p>
+    )}
     <div className="ws-report-counts" aria-label="採点の内訳">
       <span>正解 <b>{record.score}問</b></span><span>まちがい <b>{record.wrong}問</b></span><span>未回答 <b>{record.empty}問</b></span>
     </div>

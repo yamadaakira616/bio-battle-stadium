@@ -76,7 +76,7 @@ export default function AdventureHome({
           <p>そろばんと暗算が、きみの最強の武器になる。</p>
         </div>
         <span className="edition-tag">
-          <span className="live-dot" /> ADVENTURE 2.3.0
+          <span className="live-dot" /> ADVENTURE 2.3.1
         </span>
       </div>
       <section

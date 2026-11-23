@@ -4,7 +4,8 @@ import { GACHA_COST } from '../utils/gameLogic.js';
 import { getLevelUpCost, MAX_CARD_LEVEL } from '../utils/battleEngine.js';
 import { FUSIONS } from '../data/fusions.js';
 import { normalizeAttendance, recordVisit, claimLoginBonus, normalizeFirstClears, saveLevelResult } from '../utils/attendance.js';
-import { dateKey, emptyLearning, normalizeLearning, recordLearningSession, claimLearningMission } from '../utils/learning.js';
+import { dateKey, emptyLearning, normalizeLearning, recordLearningSession, recordGradedWorksheet, claimLearningMission } from '../utils/learning.js';
+import { listWorksheetRecords, WORKSHEET_CHALLENGE_COINS } from '../utils/worksheetHistory.js';
 
 const KEY = 'sticker-book-v1';
 const DEFAULT_STATE = {
@@ -74,6 +75,18 @@ export function useGameState() {
     catch { setStorageError(true); }
   }, [state]);
 
+  useEffect(() => {
+    // An app close can interrupt the game save after the answer sheet was saved.
+    // Only sheets created under the new reward rule carry a coin receipt.
+    try {
+      const due = listWorksheetRecords().records.filter(record => record.challengeCoins === WORKSHEET_CHALLENGE_COINS);
+      if (due.length) {
+        due.reverse();
+        setState(current => due.reduce(recordGradedWorksheet, current));
+      }
+    } catch { /* Leave existing game progress available if storage cannot be read. */ }
+  }, []);
+
   const [today, setToday] = useState(() => dateKey());
   useEffect(() => {
     let midnight;
@@ -104,6 +117,9 @@ export function useGameState() {
 
   function finishLearning(session, date = new Date()) {
     setState(s => recordLearningSession(s, session, date));
+  }
+  function finishWorksheet(record) {
+    setState(current => recordGradedWorksheet(current, record));
   }
   function claimMission(id) {
     const date = new Date();
@@ -267,7 +283,7 @@ export function useGameState() {
 
   return {
     state: { ...state, storageError, today },
-    finishLearning, claimMission, toggleSound, claimLogin,
+    finishLearning, finishWorksheet, claimMission, toggleSound, claimLogin,
     addCoins, spendCoins, levelUp, saveStars,
     updateBestCombo, incLevelPlayCount, pullGacha, updateBookPage,
     updateBattleProgress, saveBattleTeam, upgradeCard, addCardToCollection,

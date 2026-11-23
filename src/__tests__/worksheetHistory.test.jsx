@@ -1,8 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, renderHook, screen, within } from '@testing-library/react';
 import { getWorksheet } from '../utils/worksheetBank';
 import { makeWorksheetRecord, saveWorksheetRecord, listWorksheetRecords, loadWorksheetAnswers } from '../utils/worksheetHistory';
 import WorksheetRecords from '../components/WorksheetRecords';
+import { useGameState } from '../hooks/useGameState';
 
 function attempt(id = 'first', answers = getWorksheet(2).map(q => String(q.answer))) {
   return makeWorksheetRecord({ id, setId: 2, mode: 'timed', startedAt: 1000000, endedAt: 1300000, answers });
@@ -60,5 +61,53 @@ describe('100問計算の成績', () => {
     expect(within(screen.getByRole('list')).getAllByRole('listitem')[0].textContent).toContain('問2');
     fireEvent.click(screen.getByRole('button', { name: '次の10問' }));
     expect(within(screen.getByRole('list')).getAllByRole('listitem')[0].textContent).toContain('問12');
+  });
+});
+
+describe('100問計算のコイン保存', () => {
+  it('restores an interrupted reward from the saved sheet and skips pre-bonus submissions', () => {
+    localStorage.setItem('sticker-book-v1', JSON.stringify({ coins: 143 }));
+    const legacy = attempt('previous-release');
+    delete legacy.challengeCoins;
+    saveWorksheetRecord(legacy);
+    const answer = String(getWorksheet(2)[0].answer);
+    saveWorksheetRecord(attempt('pending', [answer]));
+
+    const firstLaunch = renderHook(useGameState);
+    expect(firstLaunch.result.current.state.coins).toBe(143 + 500 + 20);
+    expect(firstLaunch.result.current.state.learning.answered).toBe(1);
+    firstLaunch.unmount();
+
+    const nextLaunch = renderHook(useGameState);
+    expect(nextLaunch.result.current.state.coins).toBe(143 + 500 + 20);
+    expect(nextLaunch.result.current.state.learning.correct).toBe(1);
+  });
+
+  it('remembers paid sheets after 200 newer sessions and awards a new blank attempt at the same set', () => {
+    const first = saveWorksheetRecord(attempt('first-challenge', [String(getWorksheet(2)[0].answer)]));
+    const game = renderHook(useGameState);
+    const balance = game.result.current.state.coins;
+    expect(balance).toBe(500 + 520);
+    act(() => {
+      // Wrong answers leave the wallet unchanged while rotating the recent activity list.
+      for (let i = 0; i < 200; i++) {
+        game.result.current.finishLearning({
+          id: 'practice-' + i, mode: 'mental', rows: [{ correct: false, problem: { id: 'review-item' } }],
+        });
+      }
+    });
+    expect(game.result.current.state.learning.sessions).toHaveLength(200);
+    expect(game.result.current.state.learning.sessions.some(session => session.id === first.id)).toBe(false);
+    game.unmount();
+
+    const restarted = renderHook(useGameState);
+    expect(restarted.result.current.state.coins).toBe(balance);
+    const retry = saveWorksheetRecord(attempt('empty-retry', []));
+    act(() => {
+      restarted.result.current.finishWorksheet(retry);
+      restarted.result.current.finishWorksheet(retry);
+    });
+    expect(restarted.result.current.state.coins).toBe(balance + 500);
+    expect(restarted.result.current.state.learning.correct).toBe(1);
   });
 });

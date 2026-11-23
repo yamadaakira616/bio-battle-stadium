@@ -1,5 +1,7 @@
 import { getWorksheet } from './worksheetBank';
 
+export const WORKSHEET_CHALLENGE_COINS = 500;
+
 export const WORKSHEET_MODE_LABELS = {
   timed: '5分テスト', untimed: '時間無制限テスト', practice: 'ヒント付き練習',
 };
@@ -34,7 +36,7 @@ export function makeWorksheetRecord({ id, setId, mode, startedAt, endedAt, answe
   const counts = { correct: 0, wrong: 0, empty: 0 };
   sheet.forEach((question, i) => { counts[mark(submitted[i], question.answer)] += 1; });
   const record = { id, setId, mode, startedAt, endedAt, answers: submitted, sheet,
-    score: counts.correct, wrong: counts.wrong, empty: counts.empty };
+    score: counts.correct, wrong: counts.wrong, empty: counts.empty, challengeCoins: WORKSHEET_CHALLENGE_COINS };
   if (!validSummary(record)) throw new Error('答案の形式を確認できません。');
   return record;
 }

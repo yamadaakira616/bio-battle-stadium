@@ -1,3 +1,4 @@
+import { WORKSHEET_CHALLENGE_COINS } from "./worksheetHistory";
 import { WORKSHEET_SIZE } from "./worksheetBank";
 import {
   HUNDRED_COURSES,
@@ -86,6 +87,7 @@ export function emptyLearning() {
     answered: 0,
     correct: 0,
     sessions: [],
+    worksheetBonusReceipts: {},
     mistakes: [],
     daily: {},
     quests: {},
@@ -104,7 +106,7 @@ export function normalizeLearning(value) {
     if (!Number.isFinite(merged[key]) || merged[key] < 0) merged[key] = 0;
   for (const key of ["sessions", "mistakes"])
     if (!Array.isArray(merged[key])) merged[key] = [];
-  for (const key of ["daily", "quests", "skills"])
+  for (const key of ["daily", "quests", "skills", "worksheetBonusReceipts"])
     if (
       !merged[key] ||
       typeof merged[key] !== "object" ||
@@ -232,6 +234,30 @@ export function generateLearningProblem(
 export function sessionReward(rows) {
   return rows.filter((r) => r.correct).length * 20;
 }
+
+// Keep the receipt and balance in the same game save. Recent learning sessions
+// are capped at 200, but a graded worksheet can be reopened indefinitely.
+export function recordGradedWorksheet(state, record) {
+  const receipts = state.learning.worksheetBonusReceipts || {};
+  if (Object.hasOwn(receipts, record.id)) return state;
+  const rows = Array.from({ length: record.score + record.wrong }, (_, i) => ({
+    correct: i < record.score,
+  }));
+  const graded = recordLearningSession(state, {
+    id: record.id,
+    mode: "worksheet",
+    setId: record.setId,
+    rows,
+    seconds: Math.round((record.endedAt - record.startedAt) / 1000),
+  }, new Date(record.endedAt));
+  if (record.challengeCoins !== WORKSHEET_CHALLENGE_COINS) return graded;
+  return {
+    ...graded,
+    coins: graded.coins + record.challengeCoins,
+    learning: { ...graded.learning, worksheetBonusReceipts: { ...receipts, [record.id]: true } },
+  };
+}
+
 export function recordLearningSession(state, session, date = new Date()) {
   const learning = normalizeLearning(state.learning);
   if (session.mode === "hundred")

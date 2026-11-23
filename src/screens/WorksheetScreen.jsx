@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Icon from "../components/Icon";
 import { WorksheetResult } from "../components/WorksheetRecords";
 import { getWorksheet } from "../utils/worksheetBank";
-import { makeWorksheetRecord, saveWorksheetRecord } from "../utils/worksheetHistory";
+import { makeWorksheetRecord, saveWorksheetRecord, WORKSHEET_CHALLENGE_COINS } from "../utils/worksheetHistory";
 import "./worksheet.css";
 
 const DRAFT_KEY = "bio-battle-worksheet-draft-v1";
@@ -221,7 +221,7 @@ export default function WorksheetScreen({ active = true, onBack, onRecords, onRe
             <button className="secondary-button" onClick={() => archive(result)}>答案をもう一度保存</button>
           </div>
         )}
-        <WorksheetResult record={result} onBack={returnToMenu}
+        <WorksheetResult record={result} saved={!storageError} onBack={returnToMenu}
           backLabel={storageError ? "答案をもう一度保存する" : "100問計算にもどる"} />
       </>
     );
@@ -251,6 +251,7 @@ export default function WorksheetScreen({ active = true, onBack, onRecords, onRe
               </button>
             ))}
           </fieldset>
+          <p className="ws-bonus-note">採点すると、正解分のコインに加えて毎回{WORKSHEET_CHALLENGE_COINS}コインもらえます。</p>
           <button className="primary-button ws-start" onClick={start}>100問をはじめる <Icon name="arrow" size={18} /></button>
         </div>
         <button className="text-button" onClick={onBack}><Icon name="back" size={16} />冒険基地へ</button>
