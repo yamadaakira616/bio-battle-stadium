@@ -1,3 +1,4 @@
+import WorksheetRecords from "../components/WorksheetRecords";
 import AttendanceRecords from "../components/AttendanceRecords";
 import MilestoneRecords from "../components/MilestoneRecords";
 import HundredRecords from "../components/HundredRecords";
@@ -37,6 +38,7 @@ export default function RecordsScreen({ state, learning: l, onReview }) {
           にがてリベンジ {l.mistakes.length}問
         </button>
       </div>
+      <WorksheetRecords />
       <AttendanceRecords attendance={state.attendance} learning={l} />
       <div className="record-stats">
         {[
@@ -86,6 +88,7 @@ export default function RecordsScreen({ state, learning: l, onReview }) {
             {[
               "soroban",
               "hundred",
+              "worksheet",
               "mental",
               "bonds",
               "flash",
@@ -160,7 +163,9 @@ export default function RecordsScreen({ state, learning: l, onReview }) {
                       <td>{s.date.replaceAll("-", " / ")}</td>
                       <td>{MODES[s.mode]?.name || "暗算クエスト"}</td>
                       <td>
-                        {s.mode === "flash"
+                        {s.mode === "worksheet"
+                          ? `セット ${String(s.setId).padStart(2, "0")}`
+                          : s.mode === "flash"
                           ? s.level
                             ? `Lv. ${s.level}`
                             : "レベルの記録なし"

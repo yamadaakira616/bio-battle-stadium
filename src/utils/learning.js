@@ -1,3 +1,4 @@
+import { WORKSHEET_SIZE } from "./worksheetBank";
 import {
   HUNDRED_COURSES,
   HUNDRED_VARIANTS,
@@ -33,6 +34,7 @@ export const MODES = {
     caption: "数字を見て、頭の中でそろばんを。",
     icon: "bolt",
   },
+  worksheet: { name: "100問計算", icon: "abacus" },
   hundred: {
     name: "1〜100 そろばんロード",
     caption: "順足しと165のくり返しを、100まで。",
@@ -241,7 +243,8 @@ export function recordLearningSession(state, session, date = new Date()) {
     !session.rows.length
   )
     return state;
-  const rows = session.rows.slice(0, 10);
+  const isWorksheet = session.mode === "worksheet";
+  const rows = session.rows.slice(0, isWorksheet ? WORKSHEET_SIZE : 10);
   const correct = rows.filter((r) => r.correct).length;
   const key = dateKey(date);
   const yesterday = new Date(date);
@@ -255,10 +258,14 @@ export function recordLearningSession(state, session, date = new Date()) {
     answered: prev.answered + rows.length,
   };
   const mistakes = new Map(learning.mistakes.map((p) => [p.id, p]));
-  rows.forEach((row) => {
-    if (row.correct) mistakes.delete(row.problem.id);
-    else mistakes.set(row.problem.id, row.problem);
-  });
+  // Worksheet mistakes are reviewed with their original equation in the graded sheet.
+  if (!isWorksheet) {
+    for (const row of rows) {
+      if (row.correct) mistakes.delete(row.problem.id);
+      else mistakes.set(row.problem.id, row.problem);
+    }
+  }
+  const olderSession = learning.lastDate && key < learning.lastDate;
   const zone = ZONES.find((z) => z.id === session.zoneId);
   const zoneIndex = ZONES.indexOf(zone);
   const unlocked =
@@ -288,9 +295,9 @@ export function recordLearningSession(state, session, date = new Date()) {
       xp: learning.xp + correct * 20 + rows.length * 5,
       answered: learning.answered + rows.length,
       correct: learning.correct + correct,
-      lastDate: key,
+      lastDate: olderSession ? learning.lastDate : key,
       streak:
-        learning.lastDate === key
+        olderSession || learning.lastDate === key
           ? learning.streak
           : learning.lastDate === dateKey(yesterday)
             ? learning.streak + 1
@@ -318,9 +325,10 @@ export function recordLearningSession(state, session, date = new Date()) {
           mode: session.mode,
           level: session.level ?? null,
           difficulty: session.difficulty ?? null,
+          ...(isWorksheet && { setId: session.setId }),
           zoneId: session.zoneId ?? null,
           correct,
-          total: rows.length,
+          total: isWorksheet ? WORKSHEET_SIZE : rows.length,
           seconds: session.seconds || 0,
         },
       ].slice(-200),

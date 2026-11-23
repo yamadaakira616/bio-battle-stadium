@@ -102,8 +102,7 @@ export function useGameState() {
     setState(s => claimLoginBonus(s, now));
   }
 
-  function finishLearning(session) {
-    const date = new Date();
+  function finishLearning(session, date = new Date()) {
     setState(s => recordLearningSession(s, session, date));
   }
   function claimMission(id) {

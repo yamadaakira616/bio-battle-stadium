@@ -4,6 +4,8 @@ import HomeScreen from "./screens/AdventureHome.jsx";
 import AdventureShell from "./components/AdventureShell.jsx";
 import LearningScreen from "./screens/LearningScreen.jsx";
 import HundredAbacusScreen from "./screens/HundredAbacusScreen.jsx";
+import WorksheetScreen from "./screens/WorksheetScreen.jsx";
+import { worksheetRows } from "./utils/worksheetHistory";
 import QuestScreen from "./screens/QuestScreen.jsx";
 import RecordsScreen from "./screens/RecordsScreen.jsx";
 import { setSoundEnabled } from "./utils/sound";
@@ -32,6 +34,7 @@ const SCREEN = {
   BATTLE: "BATTLE",
   FUSION: "FUSION",
   HUNDRED: "HUNDRED",
+  WORKSHEET: "WORKSHEET",
 };
 
 export default function App() {
@@ -252,6 +255,19 @@ export default function App() {
       onSound={toggleSound}
     >
       {content}
+      <WorksheetScreen
+        active={screen === SCREEN.WORKSHEET}
+        onRecorded={(record) => finishLearning({
+          id: record.id,
+          mode: "worksheet",
+          setId: record.setId,
+          rows: worksheetRows(record).filter(row => row.status !== "empty")
+            .map(row => ({ correct: row.status === "correct" })),
+          seconds: Math.round((record.endedAt - record.startedAt) / 1000),
+        }, new Date(record.endedAt))}
+        onRecords={() => setScreen(SCREEN.RECORDS)}
+        onBack={() => setScreen(SCREEN.HOME)}
+      />
     </AdventureShell>
   );
 }

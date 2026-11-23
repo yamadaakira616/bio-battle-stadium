@@ -76,7 +76,7 @@ export default function AdventureHome({
           <p>そろばんと暗算が、きみの最強の武器になる。</p>
         </div>
         <span className="edition-tag">
-          <span className="live-dot" /> ADVENTURE 2.2.1
+          <span className="live-dot" /> ADVENTURE 2.3.0
         </span>
       </div>
       <section
@@ -121,6 +121,11 @@ export default function AdventureHome({
           <Icon name="compass" />
         </div>
       </section>
+      <button className="worksheet-home-link" onClick={() => onNavigate("WORKSHEET")}>
+        <span className="stat-icon amber"><Icon name="abacus" size={27} /></span>
+        <span><strong>100問計算</strong><small>5分テスト・時間無制限・練習から選ぼう</small></span>
+        <Icon name="arrow" size={20} />
+      </button>
       <LoginBonus
         attendance={state.attendance}
         onClaim={onClaimLogin}

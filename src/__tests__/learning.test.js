@@ -48,6 +48,25 @@ describe("learning math and progress", () => {
     expect(s.collection).toEqual({ "existing-card": 2 });
     expect(recordLearningSession(s, session(), day)).toBe(s);
   });
+  it("records worksheet points out of 100 while awarding credit only for answered questions", () => {
+    const existing = recordLearningSession(seedState(), session("yesterday", 1), day);
+    const sheet = {
+      id: "worksheet-1",
+      mode: "worksheet",
+      setId: 18,
+      rows: Array.from({ length: 23 }, (_, i) => ({ correct: i < 20 })),
+    };
+    const graded = recordLearningSession(existing, sheet, day);
+    expect(graded.learning.sessions.at(-1)).toMatchObject({
+      mode: "worksheet", setId: 18, correct: 20, total: 100,
+    });
+    expect(graded.learning.skills.worksheet).toEqual({ answered: 23, correct: 20 });
+    expect(graded.learning.daily[dateKey(day)].answered).toBe(existing.learning.answered + 23);
+    expect(graded.coins - existing.coins).toBe(20 * 20);
+    expect(graded.learning.mistakes).toEqual(existing.learning.mistakes);
+    expect(recordLearningSession(graded, sheet, day)).toBe(graded);
+    expect(recordLearningSession(graded, { ...sheet, id: "blank", rows: [] }, day)).toBe(graded);
+  });
   it("does not add the flash reward twice", () => {
     const s = recordLearningSession(
       seedState(),

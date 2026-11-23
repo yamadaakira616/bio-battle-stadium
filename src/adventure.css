@@ -2097,6 +2097,7 @@ td {
     font-size: clamp(7px, 2.2vw, 8px);
     min-width: 0;
   }
+  .mobile-nav > button { min-height: 44px; }
   .mobile-nav > button > span {
     white-space: nowrap;
   }
@@ -2980,3 +2981,21 @@ td {
     padding: 20px 16px;
   }
 }
+
+.worksheet-home-link {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 16px 20px;
+  margin: 16px 0;
+  text-align: left;
+  border: 1px solid #75663b;
+  border-radius: 12px;
+  color: #ffe4a3;
+  background: linear-gradient(105deg, #342f1f, #1b2921);
+}
+.worksheet-home-link strong, .worksheet-home-link small { display: block; }
+.worksheet-home-link strong { font-size: 18px; }
+.worksheet-home-link small { color: #dbcfb1; margin-top: 3px; }
+.worksheet-home-link > svg:last-child { margin-left: auto; flex-shrink: 0; }
